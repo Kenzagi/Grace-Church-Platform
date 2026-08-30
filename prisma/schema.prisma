@@ -1,0 +1,344 @@
+// Grace Community Church Member Management Platform — Prisma Schema
+// Per PRD v2.0 §3.3 (14 base models) + §4.2.1 Household + §4.2.3 Volunteer scheduling
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NOTE: When migrating from SQLite to PostgreSQL, Vercel Postgres / Neon / Supabase
+// all provide a connection string. Set DATABASE_URL in your Vercel project settings.
+// Run `npx prisma migrate dev --name init` to create the first migration.
+// For Vercel, add `prisma generate` to your build command or use `@prisma/adapter-vercel`.
+
+/// Tenant root — every org-scoped model carries orgId.
+model Organization {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  branding  String?
+  settings  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members     Member[]
+  adminUsers  AdminUser[]
+  groups      Group[]
+  media       MediaItem[]
+  series      SermonSeries[]
+  events      Event[]
+  tags        Tag[]
+  submissions Submission[]
+  households  Household[]
+  volunteerRoles VolunteerRole[]
+  auditLogs   AuditLog[]
+}
+
+/// Authenticated staff with role.
+model AdminUser {
+  id            String   @id @default(cuid())
+  orgId         String
+  email         String   @unique
+  name          String
+  passwordHash  String
+  role          String   @default("admin") // admin | editor | viewer
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  auditLogs    AuditLog[]
+  reviewed     Submission[]
+
+  @@index([orgId])
+}
+
+/// Household grouping — PRD §4.2.1 (groups members sharing an address).
+model Household {
+  id           String   @id @default(cuid())
+  orgId        String
+  name         String
+  address      String?
+  headMemberId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  members      Member[]      @relation("MemberHousehold")
+  headMember   Member?      @relation("HouseholdHead", fields: [headMemberId], references: [id])
+
+  @@index([orgId])
+  @@unique([headMemberId])
+}
+
+/// Core person record.
+model Member {
+  id            String   @id @default(cuid())
+  orgId         String
+  householdId   String?
+  firstName     String
+  lastName      String
+  email         String?
+  phone         String?
+  address       String?
+  photoUrl      String?
+  dateOfBirth   DateTime?
+  gender        String?  // male | female | other
+  maritalStatus String?  // single | married | divorced | widowed
+  status        String   @default("active") // active | inactive | visitor
+  notes         String?
+  joinedAt      DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  organization Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  household    Household?    @relation("MemberHousehold", fields: [householdId], references: [id], onDelete: SetNull)
+  headOfHousehold Household? @relation("HouseholdHead")
+  memberships  Membership[]
+  attendance    Attendance[]
+  submissions   Submission[]
+  speakerOf     MediaItem[]
+  memberTags    MemberTag[]
+  volunteerAssignments VolunteerAssignment[]
+
+  @@index([orgId])
+  @@index([email])
+  @@index([phone])
+  @@index([householdId])
+}
+
+/// Ministry team or small group.
+model Group {
+  id         String   @id @default(cuid())
+  orgId      String
+  name       String
+  description String?
+  category   String   @default("ministry") // ministry | smallgroup | committee | other
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  organization Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  memberships  Membership[]
+  volunteerRoles VolunteerRole[]
+
+  @@index([orgId])
+}
+
+/// Member ↔ Group join with role.
+model Membership {
+  id        String   @id @default(cuid())
+  memberId  String
+  groupId   String
+  role      String   @default("member") // leader | member | volunteer
+  joinedAt  DateTime @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  group  Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, groupId])
+  @@index([groupId])
+}
+
+/// Sermon or media asset.
+model MediaItem {
+  id          String   @id @default(cuid())
+  orgId       String
+  title       String
+  description String?
+  type        String   @default("sermon") // sermon | video | document | audio
+  url         String?
+  duration    Int?
+  speakerId   String?
+  seriesId    String?
+  status      String   @default("published") // draft | published | archived
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organization Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  speaker      Member?        @relation(fields: [speakerId], references: [id], onDelete: SetNull)
+  series       SermonSeries?  @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  submission   Submission?
+  mediaTags    MediaTag[]
+
+  @@index([orgId])
+  @@index([seriesId])
+  @@index([speakerId])
+}
+
+/// Teaching series grouping.
+model SermonSeries {
+  id          String   @id @default(cuid())
+  orgId       String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  media        MediaItem[]
+
+  @@index([orgId])
+}
+
+/// Review queue for member-submitted media.
+model Submission {
+  id           String   @id @default(cuid())
+  orgId        String
+  memberId     String
+  mediaItemId  String   @unique
+  status       String   @default("pending") // pending | approved | rejected
+  note         String?
+  reviewerId   String?
+  reviewedAt   DateTime?
+  createdAt    DateTime @default(now())
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  member       Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  mediaItem    MediaItem     @relation(fields: [mediaItemId], references: [id], onDelete: Cascade)
+  reviewer     AdminUser?    @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([orgId])
+  @@index([status])
+}
+
+/// Cross-cutting label (polymorphic via join tables).
+model Tag {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  type      String   @default("member") // member | media | event
+  color     String   @default("#6A6A6A")
+  createdAt DateTime @default(now())
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  memberTags   MemberTag[]
+  mediaTags    MediaTag[]
+  eventTags    EventTag[]
+
+  @@unique([orgId, name, type])
+  @@index([orgId])
+}
+
+model MemberTag {
+  memberId String
+  tagId    String
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([memberId, tagId])
+}
+
+model MediaTag {
+  mediaItemId String
+  tagId       String
+  mediaItem   MediaItem @relation(fields: [mediaItemId], references: [id], onDelete: Cascade)
+  tag         Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([mediaItemId, tagId])
+}
+
+model EventTag {
+  eventId String
+  tagId   String
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tag     Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, tagId])
+}
+
+/// Service, meeting, or activity.
+model Event {
+  id          String   @id @default(cuid())
+  orgId       String
+  title       String
+  description String?
+  category    String   @default("service") // service | meeting | activity | group
+  location    String?
+  startTime   DateTime
+  endTime     DateTime?
+  capacity    Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organization Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  attendance    Attendance[]
+  eventTags     EventTag[]
+  volunteerAssignments VolunteerAssignment[]
+
+  @@index([orgId])
+  @@index([startTime])
+}
+
+/// Per-event attendance record.
+model Attendance {
+  id        String   @id @default(cuid())
+  eventId   String
+  memberId  String
+  status    String   @default("present") // present | absent | excused | late
+  note      String?
+  recordedAt DateTime @default(now())
+
+  event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, memberId])
+  @@index([memberId])
+}
+
+/// Immutable action history.
+model AuditLog {
+  id        String   @id @default(cuid())
+  orgId     String
+  adminId   String?
+  action    String
+  entity    String
+  entityId  String?
+  detail    String?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  admin        AdminUser?    @relation(fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([orgId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+/// PRD §4.2.3 — Volunteer scheduling. Defines roles per group.
+model VolunteerRole {
+  id          String   @id @default(cuid())
+  orgId       String
+  groupId     String?
+  name        String   // greeter | usher | worship | children
+  capacity    Int      @default(2)
+  createdAt   DateTime @default(now())
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  group        Group?       @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  assignments  VolunteerAssignment[]
+
+  @@index([orgId])
+}
+
+/// PRD §4.2.3 — Member assigned to a role for a specific event.
+model VolunteerAssignment {
+  id       String @id @default(cuid())
+  eventId  String
+  roleId   String
+  memberId String
+  status   String @default("confirmed") // confirmed | pending | declined
+  note     String?
+
+  event   Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  role    VolunteerRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  member  Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, roleId, memberId])
+  @@index([eventId])
+}
