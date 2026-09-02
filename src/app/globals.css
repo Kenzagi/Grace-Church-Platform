@@ -91,15 +91,15 @@
   --primary: #181818;
   --primary-foreground: #ffffff;
   /* Secondary = #6A6A6A */
-  --secondary: #f7f7f7;
+  --secondary: #f0f0f0;
   --secondary-foreground: #181818;
-  --muted: #f7f7f7;
-  --muted-foreground: #6a6a6a;
-  --accent: #f7f7f7;
+  --muted: #f0f0f0;
+  --muted-foreground: #5a5a5a;
+  --accent: #f0f0f0;
   --accent-foreground: #181818;
   --destructive: #c0311f;
-  --border: #ececec;
-  --input: #ececec;
+  --border: #d8d8d8;
+  --input: #d8d8d8;
   --ring: #181818;
   --chart-1: #181818;
   --chart-2: #6a6a6a;
@@ -166,6 +166,17 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+  /* Cursor pointer on all interactive elements */
+  button, [type="button"], [type="submit"], [type="reset"],
+  a, summary, label[for], select,
+  [role="button"], [role="tab"], [role="link"],
+  [role="menuitem"], [role="option"], [role="switch"],
+  [data-slot="select-item"], [data-radix-collection-item] {
+    cursor: pointer;
+  }
+  input[type="checkbox"], input[type="radio"] {
+    cursor: pointer;
   }
   h1, h2, h3, h4, h5, h6 {
     color: var(--primary);

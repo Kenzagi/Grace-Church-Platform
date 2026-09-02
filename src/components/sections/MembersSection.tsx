@@ -115,16 +115,18 @@ export function MembersSection() {
             </SelectContent>
           </Select>
           <Select value={groupFilter} onValueChange={setGroupFilter}>
-            <SelectTrigger className="w-full sm:w-44 h-10"><SelectValue placeholder="Group" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-44 h-10"><SelectValue placeholder={groups.length === 0 ? "No groups yet" : "Group"} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All groups</SelectItem>
+              {groups.length === 0 && <SelectItem value="_empty" disabled className="text-muted-foreground italic">No groups created yet</SelectItem>}
               {groups.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={householdFilter} onValueChange={setHouseholdFilter}>
-            <SelectTrigger className="w-full sm:w-44 h-10"><SelectValue placeholder="Household" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-44 h-10"><SelectValue placeholder={households.length === 0 ? "No households yet" : "Household"} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All households</SelectItem>
+              {households.length === 0 && <SelectItem value="_empty" disabled className="text-muted-foreground italic">No households created yet</SelectItem>}
               {households.map((h) => <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -603,10 +605,10 @@ function MemberEditForm({ member, onSaved, onCancel }: { member: Member; onSaved
         <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
         <Field label="Phone"><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
         <Field label="Address" className="col-span-2"><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></Field>
-        <Field label="Date of birth"><Input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} /></Field>
-        <Field label="Gender">
+        <Field label="Date of birth" required><Input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} required /></Field>
+        <Field label="Gender" required>
           <Select value={form.gender} onValueChange={(v) => setForm({ ...form, gender: v })}>
-            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="male">Male</SelectItem>
               <SelectItem value="female">Female</SelectItem>
@@ -614,9 +616,9 @@ function MemberEditForm({ member, onSaved, onCancel }: { member: Member; onSaved
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Marital status">
+        <Field label="Marital status" required>
           <Select value={form.maritalStatus} onValueChange={(v) => setForm({ ...form, maritalStatus: v })}>
-            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="single">Single</SelectItem>
               <SelectItem value="married">Married</SelectItem>
@@ -645,11 +647,13 @@ function MemberEditForm({ member, onSaved, onCancel }: { member: Member; onSaved
           </Select>
         </Field>
       </div>
-      {groups.length > 0 && (
-        <Field label="Groups & Ministries">
+      <Field label="Groups & Ministries">
+        {groups.length === 0 ? (
+          <p className="text-sm text-muted-foreground mt-1">No groups created yet</p>
+        ) : (
           <div className="grid grid-cols-2 gap-2 mt-1">
             {groups.map((g) => (
-              <label key={g.id} className="flex items-center gap-2 rounded-sm border border-border p-2 cursor-pointer hover:bg-surface-alt">
+              <label key={g.id} className="flex items-center gap-2 rounded-sm border border-border p-2 cursor-pointer hover:bg-surface-alt transition-colors">
                 <Checkbox
                   checked={form.groupIds.includes(g.id)}
                   onCheckedChange={() => toggleGroup(g.id)}
@@ -658,8 +662,8 @@ function MemberEditForm({ member, onSaved, onCancel }: { member: Member; onSaved
               </label>
             ))}
           </div>
-        </Field>
-      )}
+        )}
+      </Field>
       <div className="flex justify-end gap-2 pt-2">
         <Button type="button" variant="outline" size="sm" onClick={onCancel}>Cancel</Button>
         <Button type="submit" size="sm" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
@@ -669,7 +673,9 @@ function MemberEditForm({ member, onSaved, onCancel }: { member: Member; onSaved
 }
 
 // ── Add member form ───────────────────────────────────────────────
-function MemberFormDialog({ groups, households, onClose, onSaved }: { groups: Group[]; households: Household[]; onClose: () => void; onSaved: () => void }) {
+function MemberFormDialog({ groups: initialGroups, households, onClose, onSaved }: { groups: Group[]; households: Household[]; onClose: () => void; onSaved: () => void }) {
+  const [formGroups, setFormGroups] = React.useState<Group[]>(initialGroups);
+  const [showInlineGroup, setShowInlineGroup] = React.useState(false);
   const [form, setForm] = React.useState({
     firstName: "", lastName: "", email: "", phone: "", address: "",
     gender: "", maritalStatus: "", status: "active", dateOfBirth: "",
@@ -724,15 +730,16 @@ function MemberFormDialog({ groups, households, onClose, onSaved }: { groups: Gr
             </Field>
             <Field label="Household">
               <Select value={form.householdId} onValueChange={(v) => setForm({ ...form, householdId: v })}>
-                <SelectTrigger><SelectValue placeholder="No household" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={households.length === 0 ? "No households yet" : "No household"} /></SelectTrigger>
                 <SelectContent>
+                  {households.length === 0 && <SelectItem value="_none" disabled className="text-muted-foreground italic">No households created yet</SelectItem>}
                   {households.map((h) => <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Gender">
+            <Field label="Gender" required>
               <Select value={form.gender} onValueChange={(v) => setForm({ ...form, gender: v })}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
@@ -740,9 +747,9 @@ function MemberFormDialog({ groups, households, onClose, onSaved }: { groups: Gr
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Marital status">
+            <Field label="Marital status" required>
               <Select value={form.maritalStatus} onValueChange={(v) => setForm({ ...form, maritalStatus: v })}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="single">Single</SelectItem>
                   <SelectItem value="married">Married</SelectItem>
@@ -752,19 +759,41 @@ function MemberFormDialog({ groups, households, onClose, onSaved }: { groups: Gr
               </Select>
             </Field>
           </div>
-          <Field label="Add to groups">
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              {groups.map((g) => (
-                <label key={g.id} className="flex items-center gap-2 rounded-sm border border-border p-2 cursor-pointer hover:bg-surface-alt">
-                  <Checkbox
-                    checked={form.groupIds.includes(g.id)}
-                    onCheckedChange={(c) => setForm({ ...form, groupIds: c ? [...form.groupIds, g.id] : form.groupIds.filter((id) => id !== g.id) })}
-                  />
-                  <span className="text-sm">{g.name}</span>
-                </label>
-              ))}
-            </div>
+          <Field label="Date of birth" required>
+            <Input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} required />
           </Field>
+          <Field label="Add to groups">
+            {formGroups.length === 0 ? (
+              <div className="flex items-center justify-between rounded-sm border border-border p-3 mt-1">
+                <span className="text-sm text-muted-foreground">No groups yet</span>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline cursor-pointer"
+                  onClick={() => setShowInlineGroup(true)}
+                >
+                  <Icon as={Plus} boundingBox={false} size={14} />Create group
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                {formGroups.map((g) => (
+                  <label key={g.id} className="flex items-center gap-2 rounded-sm border border-border p-2 cursor-pointer hover:bg-surface-alt transition-colors">
+                    <Checkbox
+                      checked={form.groupIds.includes(g.id)}
+                      onCheckedChange={(c) => setForm({ ...form, groupIds: c ? [...form.groupIds, g.id] : form.groupIds.filter((id) => id !== g.id) })}
+                    />
+                    <span className="text-sm">{g.name}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </Field>
+          {showInlineGroup && (
+            <InlineGroupCreate
+              onCreated={(g) => { setFormGroups((prev) => [...prev, g]); setShowInlineGroup(false); }}
+              onCancel={() => setShowInlineGroup(false)}
+            />
+          )}
         </form>
         <DialogFooter>
           <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
@@ -1201,6 +1230,52 @@ function GroupsManagerDialog({ onClose, onChanged }: { onClose: () => void; onCh
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ── Inline group creation (used inside Add Member form) ────
+function InlineGroupCreate({ onCreated, onCancel }: { onCreated: (g: Group) => void; onCancel: () => void }) {
+  const [name, setName] = React.useState("");
+  const [category, setCategory] = React.useState("ministry");
+  const [saving, setSaving] = React.useState(false);
+
+  async function handleCreate() {
+    if (!name.trim()) return;
+    setSaving(true);
+    const res = await apiRequest("/api/groups", { method: "POST", body: { name: name.trim(), description: "", category } });
+    setSaving(false);
+    if (res.ok && res.data) {
+      toast.success(`Group "${name.trim()}" created`);
+      onCreated(res.data as Group);
+    } else {
+      toast.error(res.error || "Failed to create group");
+    }
+  }
+
+  return (
+    <div className="rounded-sm border border-primary/30 p-4 bg-surface-alt space-y-3">
+      <p className="text-sm font-medium text-primary">Quick create group</p>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Name">
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Worship Team" autoFocus />
+        </Field>
+        <Field label="Category">
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ministry">Ministry</SelectItem>
+              <SelectItem value="smallgroup">Small group</SelectItem>
+              <SelectItem value="committee">Committee</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button size="sm" variant="outline" onClick={onCancel}>Cancel</Button>
+        <Button size="sm" onClick={handleCreate} disabled={saving || !name.trim()}>{saving ? "Creating…" : "Create"}</Button>
+      </div>
+    </div>
   );
 }
 

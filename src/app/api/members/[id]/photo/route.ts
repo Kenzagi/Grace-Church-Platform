@@ -1,10 +1,8 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { requireSession, requireWriteSession, requireAdminSession } from "@/lib/auth";
+import { requireWriteSession } from "@/lib/auth";
 import { ok, badRequest, notFound, withErrorHandler } from "@/lib/api";
 import { writeAudit } from "@/lib/audit";
-import { unlink, writeFile, mkdir } from "fs/promises";
-import path from "path";
 import sharp from "sharp";
 
 /**
@@ -57,28 +55,14 @@ async function _handlePOST(req: NextRequest, { params }: Params) {
         fit: "cover",
         position: "center",
       })
-      .jpeg({ quality: 85 })
+      .jpeg({ quality: 80 })
       .toBuffer();
-  } catch (e) {
+  } catch {
     return badRequest("Could not process the image. Please ensure it's a valid image file.");
   }
 
-  // Ensure upload directory exists
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "members");
-  await mkdir(uploadDir, { recursive: true });
-
-  // Delete old photo file if it was a local upload
-  if (member.photoUrl?.startsWith("/uploads/members/")) {
-    const oldPath = path.join(process.cwd(), "public", member.photoUrl);
-    try { await unlink(oldPath); } catch {}
-  }
-
-  // Save new photo
-  const filename = `${id}.jpg`;
-  const filepath = path.join(uploadDir, filename);
-  await writeFile(filepath, processedBuffer);
-
-  const photoUrl = `/uploads/members/${filename}`;
+  // Store as base64 data URL (works on Vercel read-only filesystem)
+  const photoUrl = `data:image/jpeg;base64,${processedBuffer.toString("base64")}`;
 
   await db.member.update({
     where: { id },
@@ -104,10 +88,7 @@ async function _handleDELETE(_req: NextRequest, { params }: Params) {
   const member = await db.member.findFirst({ where: { id, orgId: session.orgId } });
   if (!member) return notFound("Member not found");
 
-  if (member.photoUrl?.startsWith("/uploads/members/")) {
-    const filepath = path.join(process.cwd(), "public", member.photoUrl);
-    try { await unlink(filepath); } catch {}
-  }
+  // Base64 photos don't need file cleanup
 
   await db.member.update({
     where: { id },
