@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Library, Plus, Search, Play, Clock, Calendar, User, Filter,
-  Check, X, Inbox, FileText, Headphones, Video,
+  Check, X, Inbox, FileText, Headphones, Video, Settings2, Pencil, Trash2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -32,6 +32,7 @@ export function MediaSection() {
   const [typeFilter, setTypeFilter] = React.useState("all");
   const [seriesFilter, setSeriesFilter] = React.useState("all");
   const [showAdd, setShowAdd] = React.useState(false);
+  const [showSeriesManager, setShowSeriesManager] = React.useState(false);
   const [selected, setSelected] = React.useState<MediaItem | null>(null);
 
   const debouncedSearch = useDebounce(search, 300);
@@ -51,10 +52,16 @@ export function MediaSection() {
         title="Media Library"
         description="Sermon archive and media assets — browse, filter, and add new content."
         actions={
-          <Button size="sm" onClick={() => setShowAdd(true)} className="h-9">
-            <Icon as={Plus} boundingBox={false} size={14} />
-            <span className="hidden sm:inline">Add media</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => setShowSeriesManager(true)} className="h-9">
+              <Icon as={Settings2} boundingBox={false} size={14} />
+              <span className="hidden sm:inline">Manage series</span>
+            </Button>
+            <Button size="sm" onClick={() => setShowAdd(true)} className="h-9">
+              <Icon as={Plus} boundingBox={false} size={14} />
+              <span className="hidden sm:inline">Add media</span>
+            </Button>
+          </div>
         }
       />
 
@@ -142,7 +149,130 @@ export function MediaSection() {
 
       {showAdd && <AddMediaDialog series={series} onClose={() => setShowAdd(false)} onSaved={() => { refetch(); setShowAdd(false); }} />}
       {selected && <MediaDetailDialog media={selected} onClose={() => setSelected(null)} onSaved={refetch} />}
+      {showSeriesManager && <ManageSeriesDialog onClose={() => setShowSeriesManager(false)} onChanged={refetch} />}
     </div>
+  );
+}
+
+// ── Series management (edit / delete) ─────────────────────────────
+function ManageSeriesDialog({ onClose, onChanged }: { onClose: () => void; onChanged: () => void }) {
+  const { data, loading, error, refetch } = useFetch<{ series: (SermonSeries & { _count?: { media: number } })[] }>(`/api/series`);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const [saving, setSaving] = React.useState(false);
+  const [editForm, setEditForm] = React.useState({ name: "", description: "" });
+
+  const series = data?.series || [];
+
+  function startEdit(s: SermonSeries) {
+    setEditingId(s.id);
+    setDeletingId(null);
+    setEditForm({ name: s.name, description: s.description || "" });
+  }
+
+  async function handleSave(id: string) {
+    if (!editForm.name.trim()) { toast.error("Series name is required"); return; }
+    setSaving(true);
+    const res = await apiRequest<{ series: SermonSeries }>(`/api/series/${id}`, {
+      method: "PATCH",
+      body: { name: editForm.name.trim(), description: editForm.description.trim() || null },
+    });
+    setSaving(false);
+    if (res.ok) {
+      toast.success("Series updated");
+      setEditingId(null);
+      refetch();
+      onChanged();
+    } else {
+      toast.error(res.error || "Failed to update series");
+    }
+  }
+
+  async function handleDelete(s: SermonSeries & { _count?: { media: number } }) {
+    setSaving(true);
+    const res = await apiRequest<{ detachedMedia: number }>(`/api/series/${s.id}`, { method: "DELETE" });
+    setSaving(false);
+    if (res.ok) {
+      const n = res.data?.detachedMedia ?? 0;
+      toast.success(n > 0 ? `Series deleted — ${n} media item${n !== 1 ? "s" : ""} detached` : "Series deleted");
+      setDeletingId(null);
+      refetch();
+      onChanged();
+    } else {
+      toast.error(res.error || "Failed to delete series");
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto scrollbar-thin">
+        <DialogHeader>
+          <DialogTitle>Manage series</DialogTitle>
+          <DialogDescription>Rename or remove teaching series. Media items are never deleted — removing a series simply detaches its media.</DialogDescription>
+        </DialogHeader>
+        <div className="py-2">
+          {loading ? <LoadingSpinner label="Loading series…" />
+          : error ? <ErrorState title="Couldn't load series" description={error} onRetry={refetch} />
+          : series.length === 0 ? (
+            <EmptyState title="No series yet" description="Create a series from the Add media form — it will appear here for editing." />
+          ) : (
+            <div className="divide-y divide-border rounded-sm border border-border">
+              {series.map((s) => {
+                const isEditing = editingId === s.id;
+                const isDeleting = deletingId === s.id;
+                return (
+                  <div key={s.id} className="p-3 sm:p-4">
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder="Series name" autoFocus />
+                        <Textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} placeholder="Description (optional)" rows={2} />
+                        <div className="flex justify-end gap-2">
+                          <Button size="sm" variant="outline" onClick={() => setEditingId(null)} disabled={saving}>Cancel</Button>
+                          <Button size="sm" onClick={() => handleSave(s.id)} disabled={saving || !editForm.name.trim()}>{saving ? "Saving…" : "Save"}</Button>
+                        </div>
+                      </div>
+                    ) : isDeleting ? (
+                      <div className="space-y-2">
+                        <p className="text-sm text-foreground">
+                          Delete <strong>{s.name}</strong>?
+                          {s._count && s._count.media > 0 && (
+                            <span className="text-muted-foreground"> {s._count.media} media item{s._count.media !== 1 ? "s" : ""} will be detached (not deleted).</span>
+                          )}
+                        </p>
+                        <div className="flex justify-end gap-2">
+                          <Button size="sm" variant="outline" onClick={() => setDeletingId(null)} disabled={saving}>Cancel</Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleDelete(s)} disabled={saving}>{saving ? "Deleting…" : "Delete series"}</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-primary truncate">{s.name}</p>
+                          <p className="text-caption truncate">
+                            {s._count?.media ?? 0} media item{(s._count?.media ?? 0) !== 1 ? "s" : ""}{s.description ? ` · ${s.description}` : ""}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Button size="sm" variant="ghost" onClick={() => startEdit(s)} aria-label={`Edit ${s.name}`}>
+                            <Icon as={Pencil} boundingBox={false} size={14} />Edit
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => { setDeletingId(s.id); setEditingId(null); }} className="text-red-600" aria-label={`Delete ${s.name}`}>
+                            <Icon as={Trash2} boundingBox={false} size={14} />Delete
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" size="sm" onClick={onClose}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -310,7 +440,7 @@ export function SubmissionsSection() {
     <div>
       <PageHeader
         title="Submissions"
-        description="Review queue for member-submitted media before publication."
+        description="Review queue for member-submitted media before publication. Members submit via the public portal at /portal."
         actions={
           <div className="flex items-center gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>

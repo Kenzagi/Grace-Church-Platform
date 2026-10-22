@@ -19,6 +19,7 @@ const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days — keep in sync with lib/au
 const PUBLIC_API_PATHS = [
   "/api/auth/login",
   "/api/auth/me", // me endpoint reads cookie itself
+  "/api/portal/", // member media portal — unauthenticated by design; strict per-IP rate limits + validation in the routes themselves
 ];
 
 /** Cache the imported HMAC key per process to avoid re-importing per request. */

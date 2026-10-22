@@ -143,7 +143,54 @@ gender/maritalStatus and preserves unspecified fields on duplicate-update.
 
 ## Remaining / future work (not in this cycle)
 
-- Series management UI (edit/delete) — create endpoint + inline create shipped.
+- ~~Series management UI (edit/delete)~~ → ✅ DONE (see below)
+- ~~Member-facing submission portal~~ → ✅ DONE (see below)
 - Replace in-memory rate limit store with Redis for multi-server deployments.
 - Move photo storage to Vercel Blob / Supabase Storage for larger files.
-- Member-facing submission portal (Submissions queue currently admin-review only).
+
+---
+
+## Series Management UI (edit/delete) — ✅ DONE
+
+**API:** `PATCH /api/series/[id]` + `DELETE /api/series/[id]` (new route) —
+org-scoped, Zod-validated (`updateSeriesSchema`), write-rate-limited, audited
+(`series.update` / `series.delete`). PATCH guards against duplicate names
+(409, excluding self). DELETE is safe by schema design: `MediaItem.seriesId`
+is `onDelete: SetNull`, so media items are detached, never deleted — the
+response reports `detachedMedia` count.
+
+**UI:** "Manage series" button on the Media Library header opens a dialog
+listing all series with media counts + descriptions. Inline edit (rename +
+description) and delete with an explicit confirm that states how many media
+items will be detached. List refreshes the library's series filter on change.
+
+**Files:** `src/app/api/series/[id]/route.ts` (new), `src/components/sections/MediaSubmissionsSection.tsx` (`ManageSeriesDialog`), `src/lib/validations.ts`, `src/lib/types.ts`
+
+---
+
+## Member-Facing Submission Portal — ✅ DONE
+
+**Flow:** Members submit media for admin review **without logging in** —
+identified by the email on file in the member directory.
+
+- **Public page `/portal`:** two tabs — "Submit media" (email lookup →
+  disambiguation if several members share an email → details form → success
+  screen with a short reference code) and "Check status" (email → last 20
+  submissions with status badges + reviewer notes). Light/dark + mobile
+  verified. Linked from the admin login screen ("Are you a member? …").
+- **API (all public, no auth — proxy whitelists `/api/portal/`):**
+  - `POST /api/portal/lookup` — 10/min/IP; returns ONLY id + display name of
+    matching members; unknown emails → empty list (no directory enumeration).
+  - `POST /api/portal/submissions` — 5/10min/IP; creates a **draft** media
+    item + **pending** submission atomically (nothing is published until an
+    admin approves via the existing review flow); `memberId` (if provided)
+    is verified against the email match set; audited as `submission.portal`
+    with a null adminId.
+  - `GET /api/portal/submissions?email=…` — 20/min/IP; minimal fields only
+    (title, type, status, review note, reference, dates); unknown emails →
+    empty list (no enumeration).
+- **Review integration:** portal submissions appear in the existing
+  Submissions queue; approval publishes the media (unchanged flow) and the
+  member sees status + note on the portal.
+
+**Files:** `src/app/portal/page.tsx` (new), `src/app/api/portal/lookup/route.ts` (new), `src/app/api/portal/submissions/route.ts` (new), `src/proxy.ts`, `src/components/sections/LoginSection.tsx`, `src/lib/validations.ts` (`portalLookupSchema`, `portalSubmissionSchema`)

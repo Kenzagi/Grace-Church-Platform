@@ -88,6 +88,7 @@ export interface SermonSeries {
   id: string;
   name: string;
   description: string | null;
+  _count?: { media: number };
 }
 
 export interface EventItem {

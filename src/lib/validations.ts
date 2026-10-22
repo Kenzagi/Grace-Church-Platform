@@ -176,6 +176,31 @@ export const createSeriesSchema = z.object({
   description: optionalString(2000),
 });
 
+export const updateSeriesSchema = createSeriesSchema.partial();
+
+// ── Member portal (public, no auth — strict rate limits apply) ────────
+
+export const portalLookupSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
+export const portalSubmissionSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  // Required only when several members share the same email — must be one
+  // of the ids returned by the lookup (verified server-side against email)
+  memberId: z.string().min(1).optional(),
+  title: z.string().min(1, "Title is required").max(300),
+  description: optionalString(2000),
+  type: z.enum(["sermon", "video", "document", "audio"]).optional().default("video"),
+  url: z
+    .string()
+    .min(1, "A link to your media is required")
+    .url("Invalid URL")
+    .regex(/^https?:\/\//i, "Link must start with http:// or https://")
+    .max(2000),
+  duration: z.number().int().positive().max(86400).optional().nullable(),
+});
+
 // ── CSV import envelope ─────────────────────────────────────────────
 
 export const importRowsSchema = z.object({

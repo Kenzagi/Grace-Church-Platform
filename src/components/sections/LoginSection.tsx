@@ -130,6 +130,12 @@ export function LoginSection({
               <p>Email: <code className="font-mono">admin@grace.community</code></p>
               <p>Password: <code className="font-mono">grace2026</code></p>
             </div>
+
+            <p className="mt-5 text-center text-sm">
+              <a href="/portal" className="text-primary hover:underline font-medium">
+                Are you a member? Submit or track media here →
+              </a>
+            </p>
           </div>
         </div>
       </main>
