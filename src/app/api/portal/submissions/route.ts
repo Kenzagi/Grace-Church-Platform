@@ -111,6 +111,9 @@ async function _handlePOST(req: NextRequest) {
         type: data.type ?? "video",
         url: data.url,
         duration: data.duration ?? null,
+        // The submitting member is the author/speaker of the media — this is
+        // what shows as the name on the Media Library card after approval.
+        speakerId: member.id,
         seriesId,
         status: "draft",
         date: mediaDate,

@@ -38,7 +38,13 @@ async function _handlePATCH(req: NextRequest, { params }: Params) {
       ? [
           db.mediaItem.update({
             where: { id: sub.mediaItemId },
-            data: { status: "published" },
+            data: {
+              status: "published",
+              // Ensure the submitting member's name is saved on the media
+              // item — it's what the Media Library displays as the speaker.
+              // Only backfills when no speaker was previously set.
+              ...(sub.mediaItem.speakerId ? {} : { speakerId: sub.memberId }),
+            },
           }),
         ]
       : []),

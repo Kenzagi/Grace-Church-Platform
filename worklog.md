@@ -71,3 +71,19 @@ Stage Summary:
 - All popover/dialog sizing + overlap defects fixed at the primitive level (dialog grid-cols-1, select max-h/max-w caps) — benefits every screen, not just audited ones.
 - Portal submissions now carry Media-Library metadata: series + date from the member, household auto-resolved from the directory email (never asked, never editable), and admins review with full context and publish with correct series/date.
 - Production-phase items remain deferred as agreed (Redis store, blob storage, Postgres switch).
+
+---
+Task ID: 4
+Agent: Super Z (main agent)
+Task: Save the submitting member's name on approved submissions so it appears in the Media Library.
+
+Work Log:
+- Root cause: POST /api/portal/submissions created the draft MediaItem without speakerId, and PATCH /api/submissions/[id] only flipped status to "published" on approval — so the submitter's name never reached the library card (which renders media.speaker).
+- Fix 1 (creation): portal mediaItem.create now sets speakerId: member.id — the submitting member is the author/speaker shown on the card.
+- Fix 2 (approval): approval update now backfills speakerId: sub.memberId when the media item has no speaker (covers pre-fix drafts); existing speaker is never overwritten.
+- Fix 3 (data): one-time backfill script (scripts/backfill-submission-speakers.ts) repaired the one affected live row — "Grace in communion" (approved, published) now shows James Mwangi.
+- Browser-verified E2E: portal submit as john.wanjiru2@grace.community ("Walking in the Spirit") → draft had speakerId set at creation → admin review dialog showed Member/Household/Series/Date/Duration grid → Approve & publish → Media Library card + detail dialog showed "John Wanjiru" as Speaker. Screenshot: download/verify-submission-member-name.png.
+- Cleanup: deleted the test media item (submission cascaded); DB now 22 media / 7 submissions / 0 missing speaker ("Grace in communion" pre-existed this session and was kept). tsc --noEmit + eslint clean; no console/page errors; dev.log clean.
+
+Stage Summary:
+- Approved submissions now carry the member's name into the Media Library (card + detail dialog) via speakerId, fixed at creation, at approval, and retroactively in data.

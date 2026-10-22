@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --text: #1b1c1d; --sub: #5c6b73; --muted: #838a8d;
+    --bg: #ffffff; --border: #c0ccd2; --accent: #227fad; --mid: #405f6f;
+    --err: #8f4e48; --connector: #94a3b8;
+  }
+  body {
+    font-family: -apple-system, 'Segoe UI', 'Liberation Sans', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased;
+  }
+  #root { width: fit-content; min-width: 1180px; max-width: 1240px; margin: 0 auto; padding: 52px 48px; background: var(--bg); }
+
+  .title { font-size: 42px; font-weight: 800; text-align: center; letter-spacing: -0.5px; }
+  .subtitle { font-size: 22px; color: var(--sub); text-align: center; margin-top: 10px; margin-bottom: 40px; }
+
+  .phase-group { background: #f8fafc; border: 1.5px solid var(--border); border-radius: 12px; padding: 20px 24px 22px; }
+  .phase-title { font-size: 26px; font-weight: 700; padding: 12px 18px; border-radius: 8px; margin-bottom: 16px; line-height: 1.3; }
+  .phase-title .phase-tag { font-size: 19px; font-weight: 600; color: var(--muted); margin-left: 10px; }
+  .phase-steps { display: flex; flex-direction: column; gap: 10px; padding-left: 8px; }
+  .phase-step {
+    font-size: 22px; font-weight: 400; color: var(--text); line-height: 1.45;
+    padding: 12px 18px; background: #ffffff; border-radius: 8px; border: 1px solid #d5dde3;
+    display: flex; align-items: flex-start;
+  }
+  .step-num {
+    flex: 0 0 auto; width: 32px; height: 32px; line-height: 32px; text-align: center;
+    border-radius: 50%; font-size: 18px; font-weight: 700; margin-right: 14px; margin-top: 1px;
+  }
+  .step-body { flex: 1 1 auto; min-width: 0; }
+  .step-body b { font-weight: 700; }
+  .step-note { font-size: 19px; color: var(--sub); margin-top: 3px; line-height: 1.4; }
+  .code { font-family: 'DejaVu Sans Mono', 'Liberation Mono', monospace; font-size: 0.86em; background: #eef2f5; border-radius: 4px; padding: 1px 7px; color: var(--mid); white-space: nowrap; }
+
+  /* Same-hue blue-gray progression (Layout C, Scheme A) */
+  .phase-1 .phase-title { background: #f0f4f8; color: #334155; border-left: 5px solid #64748b; }
+  .phase-1 .step-num { background: #e2e8f0; color: #475569; }
+  .phase-2 .phase-title { background: #e8edf2; color: #1e3a5f; border-left: 5px solid #52708a; }
+  .phase-2 .step-num { background: #dbe7f0; color: #1e3a5f; }
+  .phase-3 .phase-title { background: #e0e7ef; color: #1e3050; border-left: 5px solid #405f6f; }
+  .phase-3 .step-num { background: #d0dde8; color: #1e3050; }
+
+  .flow-arrow { text-align: center; color: var(--connector); font-size: 32px; margin: 10px 0; line-height: 1.1; }
+  .flow-arrow span { font-size: 19px; color: var(--muted); vertical-align: middle; margin-left: 12px; }
+
+  .errors {
+    margin-top: 30px; background: #faf1ef; border: 1.5px solid #dcbcb6;
+    border-left: 5px solid var(--err); border-radius: 12px; padding: 18px 24px;
+  }
+  .errors-title { font-size: 23px; font-weight: 700; color: var(--err); margin-bottom: 12px; }
+  .err-grid { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+  .err-item { flex: 1 1 30%; min-width: 320px; font-size: 19.5px; color: var(--text); line-height: 1.45; }
+  .err-item b { color: var(--err); font-family: 'DejaVu Sans Mono', 'Liberation Mono', monospace; font-size: 0.95em; }
+</style>
+</head>
+<body>
+<div id="root">
+  <div class="title">Members Section &mdash; End-to-End Workflow</div>
+  <div class="subtitle">From an admin's click to the database and back &mdash; the same guard chain protects every write</div>
+
+  <!-- PHASE 1 -->
+  <div class="phase-group phase-1">
+    <div class="phase-title">Phase 1 &middot; Admin UI &mdash; Members section<span class="phase-tag">src/components/sections/MembersSection.tsx</span></div>
+    <div class="phase-steps">
+      <div class="phase-step"><span class="step-num">1</span>
+        <span class="step-body"><b>Browse the directory</b> &mdash; table loads via <span class="code">GET /api/members</span>; debounced search (300&nbsp;ms) plus status, group and household filters re-query the API.</span>
+      </div>
+      <div class="phase-step"><span class="step-num">2</span>
+        <span class="step-body"><b>Add member</b> &mdash; dialog form with client-side Zod rules (gender + maritalStatus required, amber DOB warning); household and groups can be created inline on the fly.</span>
+      </div>
+      <div class="phase-step"><span class="step-num">3</span>
+        <span class="step-body"><b>Edit member</b> &mdash; detail dialog pulls the full profile (household, groups, tags, attendance, submissions) then patches only the changed fields.</span>
+      </div>
+      <div class="phase-step"><span class="step-num">4</span>
+        <span class="step-body"><b>Upload photo</b> &mdash; multipart <span class="code">POST /api/members/[id]/photo</span>; the image is cropped square in the browser flow and stored with the member.</span>
+      </div>
+      <div class="phase-step"><span class="step-num">5</span>
+        <span class="step-body"><b>Import / export CSV</b> &mdash; a three-step wizard (upload &rarr; preview &rarr; commit) for bulk adds; one click exports the filtered list as CSV.</span>
+      </div>
+      <div class="phase-step"><span class="step-num">6</span>
+        <span class="step-body"><b>Delete member</b> &mdash; confirm dialog, then <span class="code">DELETE /api/members/[id]</span>; memberships, tags and attendance cascade.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrow">&#8595;<span>every action funnels through the same server-side chain</span></div>
+
+  <!-- PHASE 2 -->
+  <div class="phase-group phase-2">
+    <div class="phase-title">Phase 2 &middot; API guard pipeline<span class="phase-tag">run in order, stop at first failure</span></div>
+    <div class="phase-steps">
+      <div class="phase-step"><span class="step-num">7</span>
+        <span class="step-body"><b>Rate limit</b> &mdash; 60 write requests per minute per IP (login and portal have tighter buckets); excess gets <span class="code">429</span> with a Retry-After header.</span>
+      </div>
+      <div class="phase-step"><span class="step-num">8</span>
+        <span class="step-body"><b>Session + RBAC</b> &mdash; the HMAC cookie is verified again inside the handler and the role is checked: only <b>admin</b> and <b>editor</b> may write.</span>
+      </div>
+      <div class="phase-step"><span class="step-num">9</span>
+        <span class="step-body"><b>Zod validation</b> &mdash; <span class="code">createMemberSchema</span> / <span class="code">updateMemberSchema</span> parse the payload; bad input returns <span class="code">400</span> with per-field messages.</span>
+      </div>
+      <div class="phase-step"><span class="step-num">10</span>
+        <span class="step-body"><b>Org scoping + uniqueness</b> &mdash; duplicate email inside the org is rejected; every household / group id is proven to belong to the admin's church before it is referenced.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrow">&#8595;<span>all checks passed</span></div>
+
+  <!-- PHASE 3 -->
+  <div class="phase-group phase-3">
+    <div class="phase-title">Phase 3 &middot; Data layer &amp; response</div>
+    <div class="phase-steps">
+      <div class="phase-step"><span class="step-num">11</span>
+        <span class="step-body"><b>Prisma transaction</b> &mdash; the member row and its group memberships are written atomically to SQLite, always stamped with <span class="code">orgId</span>.</span>
+      </div>
+      <div class="phase-step"><span class="step-num">12</span>
+        <span class="step-body"><b>Audit trail</b> &mdash; <span class="code">member.create</span> / <span class="code">member.update</span> / <span class="code">member.delete</span> is recorded with the admin, action, entity and IP.</span>
+      </div>
+      <div class="phase-step"><span class="step-num">13</span>
+        <span class="step-body"><b>Response</b> &mdash; <span class="code">201</span> / <span class="code">200</span> JSON returns to the UI, the list refetches and a toast confirms; CSV exports stream a file attachment instead.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ERROR PATHS -->
+  <div class="errors">
+    <div class="errors-title">Error paths &mdash; what the admin sees when a step fails</div>
+    <div class="err-grid">
+      <div class="err-item"><b>400</b> &mdash; validation failed, duplicate email, or a foreign key from another church</div>
+      <div class="err-item"><b>401</b> &mdash; no cookie or expired session &rarr; back to the sign-in screen</div>
+      <div class="err-item"><b>403</b> &mdash; viewer role attempted a write</div>
+      <div class="err-item"><b>404</b> &mdash; member exists but outside your organization (never leaked)</div>
+      <div class="err-item"><b>429</b> &mdash; too many requests; UI shows the retry countdown</div>
+      <div class="err-item"><b>500</b> &mdash; friendly message; full detail only in the server log</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
