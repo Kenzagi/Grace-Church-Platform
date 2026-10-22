@@ -121,7 +121,7 @@ export function MediaSection() {
                   </div>
                   <h3 className="text-title text-primary line-clamp-2 mb-1">{m.title}</h3>
                   {m.description && <p className="text-caption line-clamp-2 mb-3">{m.description}</p>}
-                  <div className="flex items-center gap-4 text-caption mt-3">
+                  <div className="flex items-center gap-4 text-caption mt-3 flex-wrap">
                     {m.speaker && (
                       <span className="flex items-center gap-1">
                         <Icon as={User} boundingBox={false} size={14} />
@@ -307,7 +307,7 @@ function AddMediaDialog({ series: initialSeries, onClose, onSaved }: { series: S
             <div>
               <Label className="text-sm font-medium mb-2 block">Type</Label>
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="sermon">Sermon</SelectItem>
                   <SelectItem value="audio">Audio</SelectItem>
@@ -319,7 +319,7 @@ function AddMediaDialog({ series: initialSeries, onClose, onSaved }: { series: S
             <div><Label className="text-sm font-medium mb-2 block">Duration (sec)</Label><Input type="number" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} /></div>
             <div><Label className="text-sm font-medium mb-2 block">Speaker</Label>
               <Select value={form.speakerId} onValueChange={(v) => setForm({ ...form, speakerId: v })}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={members.length === 0 ? "No members available" : "Select speaker"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -330,7 +330,7 @@ function AddMediaDialog({ series: initialSeries, onClose, onSaved }: { series: S
             </div>
             <div><Label className="text-sm font-medium mb-2 block">Series</Label>
               <Select value={form.seriesId} onValueChange={(v) => setForm({ ...form, seriesId: v })}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={series.length === 0 ? "No series yet" : "No series"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -478,7 +478,9 @@ export function SubmissionsSection() {
                   <div className="min-w-0">
                     <p className="font-medium text-primary truncate">{s.mediaItem.title}</p>
                     <p className="text-caption">
-                      by {fullName(s.member.firstName, s.member.lastName)} · {formatDate(s.createdAt)}
+                      by {fullName(s.member.firstName, s.member.lastName)}
+                      {s.member.household ? ` · ${s.member.household.name}` : ""}
+                      {' · '}{formatDate(s.createdAt)}
                     </p>
                     {s.note && <p className="text-caption mt-1 italic">"{s.note}"</p>}
                   </div>
@@ -505,6 +507,7 @@ export function SubmissionsSection() {
 function ReviewDialog({ submission, onClose, onDone }: { submission: Submission; onClose: () => void; onDone: () => void }) {
   const [note, setNote] = React.useState("");
   const [acting, setActing] = React.useState(false);
+  const Ic = TYPE_ICONS[submission.mediaItem.type] || FileText;
 
   async function act(status: "approved" | "rejected") {
     setActing(true);
@@ -518,16 +521,55 @@ function ReviewDialog({ submission, onClose, onDone }: { submission: Submission;
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Review submission</DialogTitle>
-          <DialogDescription>{submission.mediaItem.title} — by {fullName(submission.member.firstName, submission.member.lastName)}</DialogDescription>
+          <DialogDescription>
+            {submission.mediaItem.title} — by {fullName(submission.member.firstName, submission.member.lastName)}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
-          <div className="rounded-sm bg-surface-alt p-4">
-            <p className="text-sm text-foreground">{submission.mediaItem.description || "No description provided."}</p>
+          {/* Media-library-style metadata — same fields the library card shows,
+              so reviewers publish with full context. */}
+          <div className="rounded-sm bg-surface-alt p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-sm bg-surface flex items-center justify-center shrink-0">
+                <Icon as={Ic} boundingBox={false} size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-primary truncate">{submission.mediaItem.title}</p>
+                <p className="text-caption capitalize">{submission.mediaItem.type}</p>
+              </div>
+            </div>
+            <dl className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <dt className="text-caption">Member</dt>
+                <dd className="text-foreground">{fullName(submission.member.firstName, submission.member.lastName)}</dd>
+              </div>
+              <div>
+                <dt className="text-caption">Household</dt>
+                <dd className="text-foreground">{submission.member.household?.name || "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-caption">Series</dt>
+                <dd className="text-foreground">{submission.mediaItem.series?.name || "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-caption">Date</dt>
+                <dd className="text-foreground">{submission.mediaItem.date ? formatDate(submission.mediaItem.date) : "—"}</dd>
+              </div>
+              {submission.mediaItem.duration && (
+                <div>
+                  <dt className="text-caption">Duration</dt>
+                  <dd className="text-foreground">{formatDuration(submission.mediaItem.duration)}</dd>
+                </div>
+              )}
+            </dl>
+            {submission.mediaItem.description && (
+              <p className="text-sm text-foreground border-t border-border pt-3">{submission.mediaItem.description}</p>
+            )}
             {submission.mediaItem.url && (
-              <a href={submission.mediaItem.url} target="_blank" rel="noreferrer" className="text-sm text-primary hover:underline mt-2 inline-flex items-center gap-1">
+              <a href={submission.mediaItem.url} target="_blank" rel="noreferrer" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
                 <Icon as={Play} boundingBox={false} size={14} />Listen / view
               </a>
             )}
@@ -542,7 +584,7 @@ function ReviewDialog({ submission, onClose, onDone }: { submission: Submission;
             <Icon as={X} boundingBox={false} size={14} />Reject
           </Button>
           <Button size="sm" onClick={() => act("approved")} disabled={acting}>
-            <Icon as={Check} boundingBox={false} size={14} />Approve & publish
+            <Icon as={Check} boundingBox={false} size={14} />Approve &amp; publish
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -111,8 +111,23 @@ export interface Submission {
   note: string | null;
   createdAt: string;
   reviewedAt: string | null;
-  member: { id: string; firstName: string; lastName: string; email: string | null };
-  mediaItem: { id: string; title: string; description: string | null; type: string; url: string | null; duration: number | null };
+  member: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    household?: { id: string; name: string } | null;
+  };
+  mediaItem: {
+    id: string;
+    title: string;
+    description: string | null;
+    type: string;
+    url: string | null;
+    duration: number | null;
+    date?: string;
+    series?: { id: string; name: string } | null;
+  };
   reviewer?: { id: string; name: string } | null;
 }
 

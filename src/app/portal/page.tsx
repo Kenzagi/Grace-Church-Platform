@@ -10,10 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest } from "@/hooks/use-fetch";
 import { statusClass, formatDate } from "@/lib/format";
-import { toast } from "sonner";
 import {
   Church, CheckCircle2, Mail, Loader2, ArrowRight, ArrowLeft,
-  FileText, Headphones, Video, Inbox, User,
+  FileText, Headphones, Video, Inbox, User, Home, CalendarDays,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -24,7 +23,8 @@ import type { LucideIcon } from "lucide-react";
  * the member directory. All endpoints are strictly rate-limited.
  */
 
-type PortalMember = { id: string; name: string };
+type PortalMember = { id: string; name: string; household: string | null };
+type PortalSeries = { id: string; name: string };
 
 type PortalSubmission = {
   id: string;
@@ -81,7 +81,7 @@ export default function PortalPage() {
       </header>
 
       <main className="flex-1 flex items-start sm:items-center justify-center px-4 py-10">
-        <div className="w-full max-w-lg">
+        <div className="w-full max-w-xl">
           {tab === "submit" ? <SubmitPanel onSwitchToStatus={(email) => { setStatusEmail(email); setTab("status"); }} /> : <StatusPanel initialEmail={statusEmail} />}
         </div>
       </main>
@@ -105,10 +105,16 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
   const [email, setEmail] = React.useState("");
   const [candidates, setCandidates] = React.useState<PortalMember[]>([]);
   const [memberId, setMemberId] = React.useState<string>("");
+  const [memberName, setMemberName] = React.useState("");
+  const [household, setHousehold] = React.useState<string | null>(null);
+  const [series, setSeries] = React.useState<PortalSeries[]>([]);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [form, setForm] = React.useState({ title: "", type: "video", description: "", url: "", duration: "" });
-  const [result, setResult] = React.useState<{ reference: string; title: string; memberName: string } | null>(null);
+  const [form, setForm] = React.useState({
+    title: "", type: "video", seriesId: "none", date: new Date().toISOString().slice(0, 10),
+    description: "", url: "", duration: "",
+  });
+  const [result, setResult] = React.useState<{ reference: string; title: string; memberName: string; household: string | null } | null>(null);
 
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault();
@@ -118,7 +124,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
       return;
     }
     setBusy(true);
-    const res = await apiRequest<{ members: PortalMember[] }>("/api/portal/lookup", {
+    const res = await apiRequest<{ members: PortalMember[]; series: PortalSeries[] }>("/api/portal/lookup", {
       method: "POST",
       body: { email: email.trim() },
     });
@@ -128,12 +134,15 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
       return;
     }
     const members = res.data?.members || [];
+    setSeries(res.data?.series || []);
     if (members.length === 0) {
       setError("We couldn't find that email in the member directory. Please contact the church office to be added.");
       return;
     }
     if (members.length === 1) {
       setMemberId(members[0].id);
+      setMemberName(members[0].name);
+      setHousehold(members[0].household);
       setStep("details");
       return;
     }
@@ -141,6 +150,13 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
     setCandidates(members);
     setMemberId("");
     setStep("choose");
+  }
+
+  function chooseMember(m: PortalMember) {
+    setMemberId(m.id);
+    setMemberName(m.name);
+    setHousehold(m.household);
+    setStep("details");
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -152,6 +168,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
     const res = await apiRequest<{
       submission: { id: string; reference: string; status: string; title: string };
       member: { name: string };
+      household: string | null;
     } & { error?: string; members?: PortalMember[] }>("/api/portal/submissions", {
       method: "POST",
       body: {
@@ -159,6 +176,8 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
         ...(memberId ? { memberId } : {}),
         title: form.title.trim(),
         type: form.type,
+        seriesId: form.seriesId === "none" ? null : form.seriesId,
+        date: form.date || null,
         description: form.description.trim() || null,
         url: form.url.trim(),
         duration: form.duration ? Math.round(parseFloat(form.duration) * 60) : null,
@@ -180,7 +199,8 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
       setResult({
         reference: res.data.submission.reference,
         title: res.data.submission.title,
-        memberName: res.data.member?.name || "",
+        memberName: res.data.member?.name || memberName,
+        household: res.data.household ?? household,
       });
       setStep("done");
     }
@@ -191,7 +211,10 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
     setEmail("");
     setCandidates([]);
     setMemberId("");
-    setForm({ title: "", type: "video", description: "", url: "", duration: "" });
+    setMemberName("");
+    setHousehold(null);
+    setSeries([]);
+    setForm({ title: "", type: "video", seriesId: "none", date: new Date().toISOString().slice(0, 10), description: "", url: "", duration: "" });
     setResult(null);
     setError(null);
   }
@@ -207,6 +230,12 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
         <p className="text-sm text-muted-foreground mt-2">
           Thank you{result.memberName ? `, ${result.memberName.split(" ")[0]}` : ""}! Your media
           &ldquo;{result.title}&rdquo; is now <strong>pending review</strong>.
+        </p>
+        <p className="text-caption mt-1">
+          Submitted by <span className="font-medium text-foreground">{result.memberName}</span>
+          {result.household ? (
+            <> · <span className="font-medium text-foreground">{result.household}</span> household</>
+          ) : null}
         </p>
         <div className="mt-5 rounded-sm bg-surface-alt border border-border px-4 py-3 text-sm">
           <p className="text-muted-foreground">Your reference code</p>
@@ -279,14 +308,19 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
             <button
               key={m.id}
               type="button"
-              onClick={() => { setMemberId(m.id); setStep("details"); }}
+              onClick={() => chooseMember(m)}
               className="w-full flex items-center gap-3 rounded-sm border border-border bg-surface-alt px-4 py-3 text-left hover:border-primary transition-colors cursor-pointer"
             >
               <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <User className="w-4 h-4 text-primary" />
               </span>
-              <span className="text-sm font-medium text-foreground">{m.name}</span>
-              <ArrowRight className="w-4 h-4 ml-auto text-muted-foreground" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium text-foreground truncate">{m.name}</span>
+                {m.household && (
+                  <span className="block text-caption truncate">{m.household} household</span>
+                )}
+              </span>
+              <ArrowRight className="w-4 h-4 ml-auto shrink-0 text-muted-foreground" />
             </button>
           ))}
         </div>
@@ -299,12 +333,46 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
 
   // ── Step: details ──
   return (
-    <div className="bg-surface border border-border rounded-md p-8 shadow-sm">
+    <div className="bg-surface border border-border rounded-md p-6 sm:p-8 shadow-sm">
       <h1 className="text-xl font-semibold text-primary">Your submission</h1>
       <p className="text-sm text-muted-foreground mt-1">
-        Submitting as <strong>{candidates.find((c) => c.id === memberId)?.name || "member"}</strong> · {email.trim()}
+        Add your media below — it will be reviewed by a church administrator before publication.
       </p>
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+
+      {/* Identity — auto-resolved from the directory email. Read-only by design:
+          member, household, and email are never asked for twice. */}
+      <div className="mt-5 rounded-sm border border-border bg-surface-alt p-4">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground mb-3">
+          Auto-filled from the email in our member directory
+        </p>
+        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <div className="flex items-center gap-2 min-w-0">
+            <User className="w-4 h-4 text-muted-foreground shrink-0" />
+            <div className="min-w-0">
+              <dt className="text-caption">Member</dt>
+              <dd className="font-medium text-foreground truncate">{memberName || "Member"}</dd>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 min-w-0">
+            <Home className="w-4 h-4 text-muted-foreground shrink-0" />
+            <div className="min-w-0">
+              <dt className="text-caption">Household</dt>
+              <dd className="font-medium text-foreground truncate">
+                {household || "No household on file"}
+              </dd>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 min-w-0 sm:col-span-2">
+            <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
+            <div className="min-w-0">
+              <dt className="text-caption">Email</dt>
+              <dd className="font-medium text-foreground truncate">{email.trim()}</dd>
+            </div>
+          </div>
+        </dl>
+      </div>
+
+      <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <div className="space-y-2">
           <Label htmlFor="portal-title">Title *</Label>
           <Input
@@ -316,11 +384,11 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
             required
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="portal-type">Type</Label>
             <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
-              <SelectTrigger id="portal-type"><SelectValue /></SelectTrigger>
+              <SelectTrigger id="portal-type" className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="video">Video</SelectItem>
                 <SelectItem value="audio">Audio</SelectItem>
@@ -328,6 +396,37 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
                 <SelectItem value="document">Document</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="portal-series">Series</Label>
+            <Select
+              value={form.seriesId}
+              onValueChange={(v) => setForm({ ...form, seriesId: v })}
+              disabled={series.length === 0}
+            >
+              <SelectTrigger id="portal-series" className="w-full">
+                <SelectValue placeholder={series.length === 0 ? "No series available" : "No series"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No series</SelectItem>
+                {series.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="portal-date">Date</Label>
+            <div className="relative">
+              <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
+                id="portal-date"
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+                className="pl-10"
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="portal-duration">Duration (minutes)</Label>

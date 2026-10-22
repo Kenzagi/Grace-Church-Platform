@@ -83,6 +83,23 @@ async function _handlePOST(req: NextRequest) {
     member = match;
   }
 
+  // Optional series — must exist in the member's organization.
+  let seriesId: string | null = null;
+  if (data.seriesId) {
+    const series = await db.sermonSeries.findFirst({
+      where: { id: data.seriesId, orgId: member.orgId },
+      select: { id: true, name: true },
+    });
+    if (!series) {
+      return badRequest("That series doesn't exist. Please pick one from the list.");
+    }
+    seriesId = series.id;
+  }
+
+  // Media date — the member can backdate (e.g. recorded last Sunday).
+  // Noon UTC keeps the calendar day stable across timezones.
+  const mediaDate = data.date ? new Date(`${data.date}T12:00:00.000Z`) : new Date();
+
   // Draft media + pending submission created atomically — nothing is
   // visible in the library until an admin approves it.
   const result = await db.$transaction(async (tx) => {
@@ -94,8 +111,9 @@ async function _handlePOST(req: NextRequest) {
         type: data.type ?? "video",
         url: data.url,
         duration: data.duration ?? null,
+        seriesId,
         status: "draft",
-        date: new Date(),
+        date: mediaDate,
       },
     });
     const submission = await tx.submission.create({
@@ -118,6 +136,13 @@ async function _handlePOST(req: NextRequest) {
     detail: `Portal submission "${data.title}" from ${member.firstName} ${member.lastName}`,
   });
 
+  // Household is derived from the member's directory record — never asked for,
+  // never editable in the portal.
+  const household = await db.member.findUnique({
+    where: { id: member.id },
+    select: { household: { select: { name: true } } },
+  });
+
   return created({
     submission: {
       id: result.submission.id,
@@ -126,6 +151,7 @@ async function _handlePOST(req: NextRequest) {
       title: data.title,
     },
     member: { name: `${member.firstName} ${member.lastName}` },
+    household: household?.household?.name ?? null,
   });
 }
 

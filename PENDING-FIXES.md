@@ -194,3 +194,64 @@ identified by the email on file in the member directory.
   member sees status + note on the portal.
 
 **Files:** `src/app/portal/page.tsx` (new), `src/app/api/portal/lookup/route.ts` (new), `src/app/api/portal/submissions/route.ts` (new), `src/proxy.ts`, `src/components/sections/LoginSection.tsx`, `src/lib/validations.ts` (`portalLookupSchema`, `portalSubmissionSchema`)
+
+---
+
+## Design-Structure Audit (popovers / dialogs / overlaps) — ✅ DONE
+
+**Audit method:** browser walkthrough of every section + dialog + select
+(light/dark, desktop/mobile) with DOM measurements, plus code review of the
+UI primitives.
+
+**Root causes found & fixed:**
+1. **Dialog grid-track blowout** — `DialogContent` used `display: grid` with an
+   implicit `auto` track, so any nowrap/`truncate` child (e.g. the series
+   description line, media URL link) forced the track wider than the dialog.
+   Symptoms: footer Close button clipped out of view, header text running
+   under the ✕ button, stray horizontal scrollbars. Fix: explicit
+   `grid-cols-1` (= `minmax(0,1fr)`) on `DialogContent` — `src/components/ui/dialog.tsx`.
+   Verified: `scrollWidth == clientWidth`, footer visible.
+2. **Select popovers taking over the screen** — `SelectContent` max-height was
+   the full available viewport height, so long lists (60 members) opened a
+   screen-tall popover that flipped above dialogs and covered their headers.
+   Fix: capped at `min(20rem, available height)` + `max-w` guard
+   (`min(24rem, 100vw-2rem)`) — `src/components/ui/select.tsx`. Popovers now
+   anchor under the trigger with internal scroll only when genuinely needed.
+3. **Popover width not responsive** — fixed `w-72` now has
+   `max-w-[calc(100vw-2rem)]` — `src/components/ui/popover.tsx`.
+4. **Inconsistent form control widths** — selects inside form grids used the
+   `w-fit` default while inputs stretched; Add-media + portal selects now
+   `w-full`. Media card meta row wraps instead of clipping (`flex-wrap`).
+
+**Files:** `src/components/ui/dialog.tsx`, `src/components/ui/select.tsx`, `src/components/ui/popover.tsx`, `src/components/sections/MediaSubmissionsSection.tsx`
+
+---
+
+## Submission Form Mirrors Media Library (household auto-resolved) — ✅ DONE
+
+**Behavior:** the portal submit form now matches the Media Library field set,
+and identity metadata is **derived, never asked for twice**:
+
+- **Email → household auto-resolution:** `POST /api/portal/lookup` now returns
+  each matched member's household name (names only — no addresses/ids beyond
+  what's needed) plus the org's series list (id + name). The details step
+  shows a read-only "Auto-filled from the email in our member directory"
+  card with **Member · Household · Email**; disambiguation rows also show
+  each member's household.
+- **Media-Library-style fields:** Title, Type, Series (org list, "No series"
+  default), Date (defaults to today, member can backdate), Duration, Link,
+  Description — same fields the library card displays, minus the redundant
+  speaker/household inputs (speaker = the submitting member server-side;
+  household comes from the directory).
+- **Server:** `portalSubmissionSchema` accepts optional `seriesId` + `date`
+  (YYYY-MM-DD); the submission route validates the series belongs to the
+  member's org (400 otherwise), stores `date` at noon-UTC to keep the
+  calendar day stable, and returns the household for the success screen.
+- **Admin side:** `GET /api/submissions` now includes member household +
+  media series/date; the queue rows show `by {member} · {household} · {date}`
+  and the Review dialog has a Media-detail-style metadata grid
+  (Member / Household / Series / Date / Duration + description + link) so
+  reviewers publish with full context. Approval publishes the media with the
+  member's chosen series + date (verified end-to-end in the library card).
+
+**Files:** `src/app/portal/page.tsx`, `src/app/api/portal/lookup/route.ts`, `src/app/api/portal/submissions/route.ts`, `src/app/api/submissions/route.ts`, `src/lib/validations.ts`, `src/lib/types.ts`, `src/components/sections/MediaSubmissionsSection.tsx`

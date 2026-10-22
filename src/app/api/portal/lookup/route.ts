@@ -6,9 +6,10 @@ import { checkWriteRateLimit } from "@/lib/rate-limit";
 
 /**
  * Public member lookup for the submission portal (no auth).
- * Returns ONLY id + display name for members matching the email —
- * no other member data is ever exposed. Unknown emails return an
- * empty list so the endpoint can't be used to enumerate the directory.
+ * Returns ONLY id + display name + household name for members matching the
+ * email, plus the organization's series list (id + name) so the submit form
+ * can mirror the Media Library fields. Unknown emails return an empty list
+ * so the endpoint can't be used to enumerate the directory.
  */
 
 async function _handlePOST(req: NextRequest) {
@@ -25,23 +26,42 @@ async function _handlePOST(req: NextRequest) {
   // Fast path: exact match uses the email index
   let matches = await db.member.findMany({
     where: { email: trimmed },
-    select: { id: true, firstName: true, lastName: true, email: true },
+    select: {
+      id: true, orgId: true, firstName: true, lastName: true, email: true,
+      household: { select: { name: true } },
+    },
   });
 
   // Fallback: case-insensitive match (SQLite has no case-insensitive equals)
   if (matches.length === 0) {
     const candidates = await db.member.findMany({
       where: { email: { not: null } },
-      select: { id: true, firstName: true, lastName: true, email: true },
+      select: {
+        id: true, orgId: true, firstName: true, lastName: true, email: true,
+        household: { select: { name: true } },
+      },
     });
     matches = candidates.filter((m) => m.email && m.email.toLowerCase() === lower);
   }
+
+  // Series list for the submit form — same org as the matched members.
+  // Series names are public-facing media metadata (shown in the library).
+  const orgId = matches[0]?.orgId;
+  const series = orgId
+    ? await db.sermonSeries.findMany({
+        where: { orgId },
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      })
+    : [];
 
   return ok({
     members: matches.map((m) => ({
       id: m.id,
       name: `${m.firstName} ${m.lastName}`,
+      household: m.household?.name ?? null,
     })),
+    series,
   });
 }
 

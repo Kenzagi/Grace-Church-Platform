@@ -47,3 +47,27 @@ Stage Summary:
 - Series management (edit/delete) shipped and browser-verified; media never deleted on series delete.
 - Member portal shipped at /portal (public, rate-limited, no-enumeration lookups, draft-until-approved pipeline) and linked from admin login.
 - Remaining for production phase only: Redis rate-limit store, blob photo storage, Postgres switch + migration SQL execution, Vercel deploy.
+
+---
+Task ID: 3
+Agent: Super Z (main agent)
+Task: Design-structure audit of components (overlapping items, undersized/non-responsive popovers, unnecessary scrollbars) + upgrade the portal submission form to mirror the Media Library with email→household auto-resolution.
+
+Work Log:
+- Browser audit (agent-browser, light/dark + desktop/mobile) with DOM measurements found 3 concrete defects:
+  (a) Dialog grid-track blowout: DialogContent display:grid with implicit auto track let truncate/nowrap children (series description, media URL) force the track to 555px inside a 512px dialog — footer Close button clipped out of view, header text ran under the ✕, stray horizontal scrollbar (scrollWidth 603 vs clientWidth 510).
+  (b) Select popovers unbounded: SelectContent max-h = full available viewport height, so the 60-member Speaker dropdown opened screen-tall, flipped above the dialog and covered its header.
+  (c) Popover w-72 fixed width — overflow risk on small viewports.
+- Fixes: dialog.tsx + `grid-cols-1` (minmax(0,1fr) track — verified scrollWidth==clientWidth, footer visible); select.tsx `max-h-[min(20rem,var(--radix-select-content-available-height))]` + `max-w-[min(24rem,calc(100vw-2rem))]`; popover.tsx `max-w-[calc(100vw-2rem)]`; w-full triggers in Add-media/portal forms; flex-wrap on media card meta row.
+- Portal lookup API now returns per-member household name + org series list (id+name, names only, no enumeration change; still 10/min/IP).
+- portalSubmissionSchema extended with optional seriesId (validated against member's org → 400 on mismatch) + date (YYYY-MM-DD, stored at noon UTC); POST returns household; mediaItem created with series+date.
+- Portal details step redesigned: read-only "Auto-filled from the email in our member directory" card (Member · Household · Email, 2-col grid so long household names don't truncate), then Title / Type / Series ("No series" default) / Date (default today) / Duration / Link / Description — mirrors Media Library without redundant speaker/household inputs. Fixed the "Submitting as member" placeholder-name bug by tracking the resolved member name. Disambiguation rows show household; success screen shows "Submitted by X · Y household".
+- Admin: GET /api/submissions includes member.household + mediaItem.series/date; queue rows show member · household · date (dropped redundant "household" suffix); ReviewDialog now has a Media-detail-style grid (icon, type, Member/Household/Series/Date/Duration, description, listen link).
+- curl-verified: lookup (household+series), submit with series+date (DB row: draft, seriesId, date epoch, duration), bad seriesId 400, bad date 400, admin payload includes household/series/date.
+- Browser-verified: full portal submit flow (case-insensitive email → identity card → series/date filled → success with household); admin review dialog metadata grid; approve → published card shows member's date (22 Oct 2026) + series badge in library; speaker popover anchored below trigger capped at 320px; Manage-series Close visible, no text-under-X; dark mode + 390px mobile for portal + review dialog; console/dev.log clean.
+- Test data cleaned: both test media + submissions deleted; DB back to seed (21 media, 6 submissions, 3 series × 5 attached). tsc --noEmit + eslint clean. Screenshots in download/ (verify-portal-details2.png, verify-portal-series-open.png, verify-portal-success2.png, verify-review-dialog.png, verify-series-fixed.png, verify-speaker-fixed.png, verify-submissions-rows.png, verify-review-mobile.png, verify-portal-mobile.png, verify-series-dark.png).
+
+Stage Summary:
+- All popover/dialog sizing + overlap defects fixed at the primitive level (dialog grid-cols-1, select max-h/max-w caps) — benefits every screen, not just audited ones.
+- Portal submissions now carry Media-Library metadata: series + date from the member, household auto-resolved from the directory email (never asked, never editable), and admins review with full context and publish with correct series/date.
+- Production-phase items remain deferred as agreed (Redis store, blob storage, Postgres switch).

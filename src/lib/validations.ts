@@ -199,6 +199,15 @@ export const portalSubmissionSchema = z.object({
     .regex(/^https?:\/\//i, "Link must start with http:// or https://")
     .max(2000),
   duration: z.number().int().positive().max(86400).optional().nullable(),
+  // Optional media-library metadata — the series must exist in the member's
+  // organization (verified server-side); date is the media's own date.
+  seriesId: z.string().min(1).optional().nullable().transform((v) => (v === "" ? null : v)),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
+    .optional()
+    .nullable()
+    .transform((v) => (v === "" ? null : v)),
 });
 
 // ── CSV import envelope ─────────────────────────────────────────────
