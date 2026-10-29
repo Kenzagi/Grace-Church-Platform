@@ -87,3 +87,25 @@ Work Log:
 
 Stage Summary:
 - Approved submissions now carry the member's name into the Media Library (card + detail dialog) via speakerId, fixed at creation, at approval, and retroactively in data.
+
+---
+Task ID: 5
+Agent: Super Z (main agent)
+Task: Visualise the current system design and the Members section workflow (team-facing PNG diagrams + compiled PDF report), per user request "What is the current system design for this project? What is the workflow of the members section? Please visualise the output".
+
+Work Log:
+- Style confirmed with user via questions: Clean engineering (white / ice blue / single blue accent), for team & stakeholders; deliverables = PNGs + PDF report; architecture with internal detail; end-to-end members flow; plus an ER data-model figure.
+- Facts pulled from code (not invented): 15 API resource groups; 60 writes/min/IP in-memory sliding-window limiter; HMAC-SHA256 gc_session (7-day) verified in src/proxy.ts via Web Crypto with allow-list (/api/auth/login, /api/auth/me, /api/portal/*); 3-role RBAC; orgId tenant column on every table + cross-tenant FK re-check; Zod validation; Prisma transactions; AuditLog row per change (null adminId for portal); withErrorHandler maps P2002/P2025; SESSION_SECRET required at boot.
+- Diagrams (scripts/diagrams/*.html -> render_diagrams.py, Playwright @2x -> download/):
+  * gcc-system-architecture.png - 4 bands (Clients / Edge middleware / API route handlers + 6-step guard pipeline / Data layer) + cross-cutting invariants grid.
+  * gcc-members-workflow.png - end-to-end Members flow: Phase 1 UI (6 actions), Phase 2 API guard (rate limit -> RBAC -> Zod -> org scoping), Phase 3 data layer (transaction -> audit -> response), plus 6 error paths (400/401/403/404/429/500).
+  * gcc-data-model.png - ER hub layout, Member at centre; 12 relation lines drawn as SVG elbows; three geometry fixes (trunk offsets, exit-right/enter-left edges, label placement) until no line crosses a card.
+- PDF report (download/gcc-system-design-report.pdf, 9 pages, A4):
+  * Cover: Template 01 HUD (thick left anchor line, 2%-opacity grid), cascade palette seed 11 (accent #227fad) - validated with poster_validate + cover_validate, rendered via html2poster.js --width 794px.
+  * Body: ReportLab TocDocTemplate + multiBuild, clickable TOC, chapters 1-4 (System Architecture, Members Workflow, Data Model, Optimization Notes for Later), stat strip, 2 tables, all 3 figures embedded with captions; install_font_fallback(); FreeSerif English profile; header/footer rules.
+  * Fixes during build: cover page-size normalisation tolerance 2pt -> 0.4pt (pdf_qa consistency); cover summary em-dash line-start reworded; figure captions glued to images via measured KeepTogether (Figure 1 shave 610 -> 580pt).
+  * QA chain: code.sanitize, meta.brand, font.check (0 issues), toc.check (pass), pages.clean (0 blank), pdf_qa.py PASS (13/13).
+- Deferred production items documented in Chapter 4 as agreed scope boundary: in-memory limiter -> Redis, local-disk uploads -> blob storage, SQLite -> PostgreSQL, audit retention + session revocation noted.
+
+Stage Summary:
+- Team-facing visual reference shipped: 3 PNGs (architecture, members workflow, data model) + 9-page PDF report with TOC, captions and QA pass - all under download/. Diagrams use the same steel-blue cascade palette as the app-adjacent docs; facts verified against source.
