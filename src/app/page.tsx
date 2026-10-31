@@ -18,7 +18,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Icon } from "@/components/Icon";
 import { Button } from "@/components/ui/button";
 import { Church, RefreshCw, ServerOff, Loader2 } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 
 const SECTIONS: Record<SectionId, React.ComponentType<{ onNavigate?: (id: SectionId) => void }>> = {
   dashboard: (p) => <DashboardSection onNavigate={p.onNavigate!} />,

@@ -8,11 +8,21 @@ async function _handleGET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const action = searchParams.get("action");
   const entity = searchParams.get("entity");
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
   const limit = Math.min(parseInt(searchParams.get("limit") || "100"), 500);
 
   const where: Record<string, unknown> = { orgId: session.orgId };
   if (action && action !== "all") where.action = { contains: action };
   if (entity && entity !== "all") where.entity = entity;
+  // from/to are plain YYYY-MM-DD days (picker wire format); `to` is inclusive.
+  const isDay = (v: string | null): v is string => !!v && /^\d{4}-\d{2}-\d{2}$/.test(v);
+  if (isDay(from) && isDay(to)) {
+    where.createdAt = {
+      gte: new Date(`${from}T00:00:00.000Z`),
+      lt: new Date(new Date(`${to}T00:00:00.000Z`).getTime() + 86_400_000),
+    };
+  }
 
   const logs = await db.auditLog.findMany({
     where,

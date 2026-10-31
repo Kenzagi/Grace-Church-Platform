@@ -19,6 +19,7 @@ import {
   Check, X, Inbox, FileText, Headphones, Video, Settings2, Pencil, Trash2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { DateField, todayKey } from "@/components/forms/pickers";
 
 const TYPE_ICONS: Record<string, LucideIcon> = {
   sermon: Headphones,
@@ -280,7 +281,7 @@ function AddMediaDialog({ series: initialSeries, onClose, onSaved }: { series: S
   const { data: membersData } = useFetch<{ members: Member[] }>(`/api/members?limit=200`);
   const [series, setSeries] = React.useState<SermonSeries[]>(initialSeries);
   const [showInlineSeries, setShowInlineSeries] = React.useState(false);
-  const [form, setForm] = React.useState({ title: "", description: "", type: "sermon", url: "", duration: "", speakerId: "", seriesId: "", date: new Date().toISOString().slice(0, 10) });
+  const [form, setForm] = React.useState({ title: "", description: "", type: "sermon", url: "", duration: "", speakerId: "", seriesId: "", date: todayKey() });
   const [saving, setSaving] = React.useState(false);
   const members = membersData?.members || [];
 
@@ -301,9 +302,15 @@ function AddMediaDialog({ series: initialSeries, onClose, onSaved }: { series: S
           <DialogDescription>Add a new sermon, audio, video, or document to the library.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div><Label className="text-sm font-medium mb-2 block">Title *</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-          <div><Label className="text-sm font-medium mb-2 block">Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} /></div>
           <div className="grid grid-cols-2 gap-4">
+            {/* Title shares row 1 with Date: the calendar popover opens downward
+                from its field, so the higher the date field sits, the more of the
+                dialog's full height the popover has before the scroll box clips
+                its footer. Keep Date in a LEFT column — a right-column popover
+                would overflow the dialog's right edge. */}
+            <div><Label className="text-sm font-medium mb-2 block">Title *</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+            <DateField label="Date" value={form.date} onChange={(date) => setForm({ ...form, date })} />
+            <div className="col-span-2"><Label className="text-sm font-medium mb-2 block">Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} /></div>
             <div>
               <Label className="text-sm font-medium mb-2 block">Type</Label>
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
@@ -359,7 +366,6 @@ function AddMediaDialog({ series: initialSeries, onClose, onSaved }: { series: S
               )}
             </div>
             <div className="col-span-2"><Label className="text-sm font-medium mb-2 block">URL</Label><Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://…" /></div>
-            <div><Label className="text-sm font-medium mb-2 block">Date</Label><Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></div>
           </div>
         </div>
         <DialogFooter>

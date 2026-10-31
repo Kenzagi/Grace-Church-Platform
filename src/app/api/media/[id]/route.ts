@@ -41,7 +41,11 @@ async function _handlePATCH(req: NextRequest, { params }: Params) {
       ...(speakerId !== undefined && { speakerId: speakerId || null }),
       ...(seriesId !== undefined && { seriesId: seriesId || null }),
       ...(status !== undefined && { status }),
-      ...(date !== undefined && { date: date ? new Date(date) : new Date() }),
+      ...(date !== undefined && {
+        // Noon-UTC convention (same as create + portal): the calendar date is
+        // stable in every display timezone.
+        date: date ? new Date(`${date}T12:00:00.000Z`) : new Date(),
+      }),
     },
   });
   await writeAudit({ orgId: session.orgId, adminId: session.adminId, action: "media.update", entity: "mediaItem", entityId: id, detail: `Updated media ${title || existing.title}` });

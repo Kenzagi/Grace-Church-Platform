@@ -1,0 +1,600 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import * as React from "react";
+     4→     4→import { Icon } from "@/components/Icon";
+     5→     5→import { PageHeader, SectionCard, LoadingSpinner, EmptyState, ErrorState } from "@/components/shared";
+     6→     6→import { useFetch, apiRequest } from "@/hooks/use-fetch";
+     7→     7→import { formatDate, formatTime, formatDateTime, statusClass } from "@/lib/format";
+     8→     8→import type { EventItem } from "@/lib/types";
+     9→     9→import { Button } from "@/components/ui/button";
+    10→    10→import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+    11→    11→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+    12→    12→import { Input } from "@/components/ui/input";
+    13→    13→import { Label } from "@/components/ui/label";
+    14→    14→import { Textarea } from "@/components/ui/textarea";
+    15→    15→import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+    16→    16→import { Badge } from "@/components/ui/badge";
+    17→    17→import { toast } from "sonner";
+    18→    18→import {
+    19→    19→  CalendarDays, Plus, MapPin, Clock, Users, Bell, ChevronLeft, ChevronRight,
+    20→    20→  List, Grid,
+    21→    21→} from "lucide-react";
+    22→    22→import { cn } from "@/lib/utils";
+    23→    23→
+    24→    24→export function EventsSection() {
+    25→    25→  const [view, setView] = React.useState<"list" | "calendar">("list");
+    26→    26→  const [category, setCategory] = React.useState("all");
+    27→    27→  const [showAdd, setShowAdd] = React.useState(false);
+    28→    28→  const [reminding, setReminding] = React.useState<EventItem | null>(null);
+    29→    29→  const [selected, setSelected] = React.useState<EventItem | null>(null);
+    30→    30→
+    31→    31→  const { data, loading, error, refetch } = useFetch<{ events: EventItem[] }>(`/api/events?category=${category}`);
+    32→    32→  const events = data?.events || [];
+    33→    33→
+    34→    34→  return (
+    35→    35→    <div>
+    36→    36→      <PageHeader
+    37→    37→        title="Events"
+    38→    38→        description="Service calendar — schedule services, meetings, and activities. Dispatch reminders to the congregation."
+    39→    39→        actions={
+    40→    40→          <>
+    41→    41→            <div className="flex items-center rounded-sm border border-border p-1 bg-surface">
+    42→    42→              <button onClick={() => setView("list")} className={cn("px-3 h-7 rounded-sm text-sm inline-flex items-center gap-1.5", view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>
+    43→    43→                <Icon as={List} boundingBox={false} size={14} />List
+    44→    44→              </button>
+    45→    45→              <button onClick={() => setView("calendar")} className={cn("px-3 h-7 rounded-sm text-sm inline-flex items-center gap-1.5", view === "calendar" ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>
+    46→    46→                <Icon as={Grid} boundingBox={false} size={14} />Calendar
+    47→    47→              </button>
+    48→    48→            </div>
+    49→    49→            <Select value={category} onValueChange={setCategory}>
+    50→    50→              <SelectTrigger className="w-32 h-9"><SelectValue /></SelectTrigger>
+    51→    51→              <SelectContent>
+    52→    52→                <SelectItem value="all">All</SelectItem>
+    53→    53→                <SelectItem value="service">Service</SelectItem>
+    54→    54→                <SelectItem value="meeting">Meeting</SelectItem>
+    55→    55→                <SelectItem value="activity">Activity</SelectItem>
+    56→    56→                <SelectItem value="group">Group</SelectItem>
+    57→    57→              </SelectContent>
+    58→    58→            </Select>
+    59→    59→            <Button size="sm" onClick={() => setShowAdd(true)} className="h-9">
+    60→    60→              <Icon as={Plus} boundingBox={false} size={14} /><span className="hidden sm:inline">New event</span>
+    61→    61→            </Button>
+    62→    62→          </>
+    63→    63→        }
+    64→    64→      />
+    65→    65→
+    66→    66→      {loading ? <LoadingSpinner label="Loading events…" />
+    67→    67→      : error ? <ErrorState title="Couldn't load events" description={error} onRetry={refetch} />
+    68→    68→      : view === "list" ? (
+    69→    69→        <EventList events={events} onSelect={setSelected} onRemind={setReminding} />
+    70→    70→      ) : (
+    71→    71→        <CalendarView events={events} onSelect={setSelected} />
+    72→    72→      )}
+    73→    73→
+    74→    74→      {showAdd && <AddEventDialog onClose={() => setShowAdd(false)} onSaved={() => { refetch(); setShowAdd(false); }} />}
+    75→    75→      {selected && <EventDetailDialog event={selected} onClose={() => setSelected(null)} onRemind={() => { setReminding(selected); setSelected(null); }} />}
+    76→    76→      {reminding && <ReminderDialog event={reminding} onClose={() => setReminding(null)} />}
+    77→    77→    </div>
+    78→    78→  );
+    79→    79→}
+    80→    80→
+    81→    81→function EventList({ events, onSelect, onRemind }: { events: EventItem[]; onSelect: (e: EventItem) => void; onRemind: (e: EventItem) => void }) {
+    82→    82→  if (events.length === 0) return <EmptyState title="No events" description="Create a new event to get started." />;
+    83→    83→  const now = new Date();
+    84→    84→  const upcoming = events.filter((e) => new Date(e.startTime) >= now);
+    85→    85→  const past = events.filter((e) => new Date(e.startTime) < now).reverse();
+    86→    86→
+    87→    87→  return (
+    88→    88→    <div className="space-y-6">
+    89→    89→      {upcoming.length > 0 && (
+    90→    90→        <div>
+    91→    91→          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Upcoming</h3>
+    92→    92→          <div className="space-y-2">
+    93→    93→            {upcoming.map((e) => <EventRow key={e.id} event={e} onSelect={onSelect} onRemind={onRemind} />)}
+    94→    94→          </div>
+    95→    95→        </div>
+    96→    96→      )}
+    97→    97→      {past.length > 0 && (
+    98→    98→        <div>
+    99→    99→          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Past</h3>
+   100→   100→          <div className="space-y-2">
+   101→   101→            {past.map((e) => <EventRow key={e.id} event={e} onSelect={onSelect} onRemind={onRemind} />)}
+   102→   102→          </div>
+   103→   103→        </div>
+   104→   104→      )}
+   105→   105→    </div>
+   106→   106→  );
+   107→   107→}
+   108→   108→
+   109→   109→function EventRow({ event, onSelect, onRemind }: { event: EventItem; onSelect: (e: EventItem) => void; onRemind: (e: EventItem) => void }) {
+   110→   110→  const d = new Date(event.startTime);
+   111→   111→  const isUpcoming = d >= new Date();
+   112→   112→  return (
+   113→   113→    <SectionCard className="p-4 hover:shadow-sm transition-shadow">
+   114→   114→      <div className="flex items-center gap-4">
+   115→   115→        <button onClick={() => onSelect(event)} className="flex items-center gap-4 flex-1 min-w-0 text-left">
+   116→   116→          <div className="w-14 h-14 rounded-sm bg-surface-alt flex flex-col items-center justify-center shrink-0">
+   117→   117→            <span className="text-[10px] uppercase text-muted-foreground leading-none">{d.toLocaleDateString("en-GB", { month: "short" })}</span>
+   118→   118→            <span className="text-xl font-semibold text-primary leading-none mt-0.5">{d.getDate()}</span>
+   119→   119→          </div>
+   120→   120→          <div className="min-w-0 flex-1">
+   121→   121→            <p className="font-medium text-primary truncate">{event.title}</p>
+   122→   122→            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-caption">
+   123→   123→              <span className="flex items-center gap-1"><Icon as={Clock} boundingBox={false} size={14} />{formatTime(event.startTime)}</span>
+   124→   124→              {event.location && <span className="flex items-center gap-1"><Icon as={MapPin} boundingBox={false} size={14} />{event.location}</span>}
+   125→   125→              {event._count?.attendance !== undefined && <span className="flex items-center gap-1"><Icon as={Users} boundingBox={false} size={14} />{event._count.attendance} attended</span>}
+   126→   126→            </div>
+   127→   127→          </div>
+   128→   128→        </button>
+   129→   129→        <div className="flex items-center gap-2 shrink-0">
+   130→   130→          <Badge variant="secondary" className="capitalize">{event.category}</Badge>
+   131→   131→          {isUpcoming && (
+   132→   132→            <Button size="sm" variant="outline" onClick={() => onRemind(event)}>
+   133→   133→              <Icon as={Bell} boundingBox={false} size={14} /><span className="hidden sm:inline">Remind</span>
+   134→   134→            </Button>
+   135→   135→          )}
+   136→   136→        </div>
+   137→   137→      </div>
+   138→   138→    </SectionCard>
+   139→   139→  );
+   140→   140→}
+   141→   141→
+   142→   142→function CalendarView({ events, onSelect }: { events: EventItem[]; onSelect: (e: EventItem) => void }) {
+   143→   143→  const [month, setMonth] = React.useState(new Date());
+   144→   144→  const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
+   145→   145→  const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+   146→   146→  const startWeekday = firstDay.getDay(); // 0 = Sun
+   147→   147→  const daysInMonth = lastDay.getDate();
+   148→   148→
+   149→   149→  const days: (Date | null)[] = [];
+   150→   150→  for (let i = 0; i < startWeekday; i++) days.push(null);
+   151→   151→  for (let d = 1; d <= daysInMonth; d++) days.push(new Date(month.getFullYear(), month.getMonth(), d));
+   152→   152→
+   153→   153→  const eventsByDay = React.useMemo(() => {
+   154→   154→    const map: Record<string, EventItem[]> = {};
+   155→   155→    for (const e of events) {
+   156→   156→      const key = new Date(e.startTime).toDateString();
+   157→   157→      (map[key] = map[key] || []).push(e);
+   158→   158→    }
+   159→   159→    return map;
+   160→   160→  }, [events]);
+   161→   161→
+   162→   162→  return (
+   163→   163→    <SectionCard className="p-4">
+   164→   164→      <div className="flex items-center justify-between mb-4">
+   165→   165→        <h3 className="text-title text-primary">{month.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}</h3>
+   166→   166→        <div className="flex items-center gap-1">
+   167→   167→          <Button variant="ghost" size="sm" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}>
+   168→   168→            <Icon as={ChevronLeft} boundingBox={false} size={16} />
+   169→   169→          </Button>
+   170→   170→          <Button variant="ghost" size="sm" onClick={() => setMonth(new Date())}>Today</Button>
+   171→   171→          <Button variant="ghost" size="sm" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}>
+   172→   172→            <Icon as={ChevronRight} boundingBox={false} size={16} />
+   173→   173→          </Button>
+   174→   174→        </div>
+   175→   175→      </div>
+   176→   176→      <div className="grid grid-cols-7 gap-1 mb-2">
+   177→   177→        {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
+   178→   178→          <div key={d} className="text-center text-[11px] font-medium text-muted-foreground uppercase py-2">{d}</div>
+   179→   179→        ))}
+   180→   180→      </div>
+   181→   181→      <div className="grid grid-cols-7 gap-1">
+   182→   182→        {days.map((d, i) => {
+   183→   183→          if (!d) return <div key={i} className="min-h-20 rounded-sm bg-surface-alt/50" />;
+   184→   184→          const dayEvents = eventsByDay[d.toDateString()] || [];
+   185→   185→          const isToday = d.toDateString() === new Date().toDateString();
+   186→   186→          return (
+   187→   187→            <div key={i} className={cn("min-h-20 rounded-sm border border-border p-1.5", isToday && "ring-2 ring-primary ring-offset-1")}>
+   188→   188→              <p className={cn("text-xs font-medium mb-1", isToday ? "text-primary" : "text-muted-foreground")}>{d.getDate()}</p>
+   189→   189→              <div className="space-y-1">
+   190→   190→                {dayEvents.slice(0, 3).map((e) => (
+   191→   191→                  <button key={e.id} onClick={() => onSelect(e)} className="w-full text-left text-[11px] px-1.5 py-0.5 rounded-sm bg-primary text-primary-foreground truncate hover:opacity-80">
+   192→   192→                    {formatTime(e.startTime)} {e.title}
+   193→   193→                  </button>
+   194→   194→                ))}
+   195→   195→                {dayEvents.length > 3 && <p className="text-[10px] text-muted-foreground px-1">+{dayEvents.length - 3} more</p>}
+   196→   196→              </div>
+   197→   197→            </div>
+   198→   198→          );
+   199→   199→        })}
+   200→   200→      </div>
+   201→   201→    </SectionCard>
+   202→   202→  );
+   203→   203→}
+   204→   204→
+   205→   205→function AddEventDialog({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+   206→   206→  const [form, setForm] = React.useState({
+   207→   207→    title: "", description: "", category: "service", location: "",
+   208→   208→    startTime: new Date(Date.now() + 86400000).toISOString().slice(0, 16),
+   209→   209→    endTime: "", capacity: "",
+   210→   210→  });
+   211→   211→  const [saving, setSaving] = React.useState(false);
+   212→   212→
+   213→   213→  async function handleSubmit() {
+   214→   214→    if (!form.title) { toast.error("Title required"); return; }
+   215→   215→    setSaving(true);
+   216→   216→    const res = await apiRequest("/api/events", { method: "POST", body: { ...form, endTime: form.endTime || null, capacity: form.capacity ? parseInt(form.capacity) : null } });
+   217→   217→    setSaving(false);
+   218→   218→    if (res.ok) { toast.success("Event created"); onSaved(); }
+   219→   219→    else toast.error(res.error || "Failed");
+   220→   220→  }
+   221→   221→
+   222→   222→  return (
+   223→   223→    <Dialog open onOpenChange={onClose}>
+   224→   224→      <DialogContent className="max-w-lg">
+   225→   225→        <DialogHeader><DialogTitle>New event</DialogTitle><DialogDescription>Schedule a service, meeting, or activity.</DialogDescription></DialogHeader>
+   226→   226→        <div className="space-y-4 py-2">
+   227→   227→          <div><Label className="text-sm font-medium mb-2 block">Title *</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+   228→   228→          <div><Label className="text-sm font-medium mb-2 block">Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} /></div>
+   229→   229→          <div className="grid grid-cols-2 gap-4">
+   230→   230→            <div><Label className="text-sm font-medium mb-2 block">Category</Label>
+   231→   231→              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+   232→   232→                <SelectTrigger><SelectValue /></SelectTrigger>
+   233→   233→                <SelectContent>
+   234→   234→                  <SelectItem value="service">Service</SelectItem>
+   235→   235→                  <SelectItem value="meeting">Meeting</SelectItem>
+   236→   236→                  <SelectItem value="activity">Activity</SelectItem>
+   237→   237→                  <SelectItem value="group">Group</SelectItem>
+   238→   238→                </SelectContent>
+   239→   239→              </Select>
+   240→   240→            </div>
+   241→   241→            <div><Label className="text-sm font-medium mb-2 block">Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
+   242→   242→            <div><Label className="text-sm font-medium mb-2 block">Starts *</Label><Input type="datetime-local" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} /></div>
+   243→   243→            <div><Label className="text-sm font-medium mb-2 block">Ends</Label><Input type="datetime-local" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} /></div>
+   244→   244→            <div><Label className="text-sm font-medium mb-2 block">Capacity</Label><Input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} /></div>
+   245→   245→          </div>
+   246→   246→        </div>
+   247→   247→        <DialogFooter>
+   248→   248→          <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+   249→   249→          <Button size="sm" onClick={handleSubmit} disabled={saving}>{saving ? "Creating…" : "Create event"}</Button>
+   250→   250→        </DialogFooter>
+   251→   251→      </DialogContent>
+   252→   252→    </Dialog>
+   253→   253→  );
+   254→   254→}
+   255→   255→
+   256→   256→function EventDetailDialog({ event, onClose, onRemind }: { event: EventItem; onClose: () => void; onRemind: () => void }) {
+   257→   257→  const [deleting, setDeleting] = React.useState(false);
+   258→   258→  async function handleDelete() {
+   259→   259→    const res = await apiRequest(`/api/events/${event.id}`, { method: "DELETE" });
+   260→   260→    if (res.ok) { toast.success("Event deleted"); onClose(); }
+   261→   261→    else toast.error(res.error || "Failed");
+   262→   262→  }
+   263→   263→  const isUpcoming = new Date(event.startTime) >= new Date();
+   264→   264→  return (
+   265→   265→    <Dialog open onOpenChange={onClose}>
+   266→   266→      <DialogContent className="max-w-lg">
+   267→   267→        <DialogHeader>
+   268→   268→          <DialogTitle>{event.title}</DialogTitle>
+   269→   269→          <DialogDescription>{formatDateTime(event.startTime)}</DialogDescription>
+   270→   270→        </DialogHeader>
+   271→   271→        <div className="space-y-3 py-2">
+   272→   272→          {event.description && <p className="text-sm text-foreground">{event.description}</p>}
+   273→   273→          <dl className="grid grid-cols-2 gap-3 text-sm">
+   274→   274→            <div><dt className="text-caption">Category</dt><dd className="text-foreground capitalize">{event.category}</dd></div>
+   275→   275→            {event.location && <div><dt className="text-caption">Location</dt><dd className="text-foreground">{event.location}</dd></div>}
+   276→   276→            {event.endTime && <div><dt className="text-caption">Ends</dt><dd className="text-foreground">{formatTime(event.endTime)}</dd></div>}
+   277→   277→            {event._count?.attendance !== undefined && <div><dt className="text-caption">Attendance</dt><dd className="text-foreground">{event._count.attendance} recorded</dd></div>}
+   278→   278→          </dl>
+   279→   279→        </div>
+   280→   280→        <DialogFooter className="flex items-center justify-between">
+   281→   281→          {deleting ? (
+   282→   282→            <div className="flex items-center gap-2">
+   283→   283→              <span className="text-sm text-red-600">Delete event?</span>
+   284→   284→              <Button size="sm" variant="destructive" onClick={handleDelete}>Yes</Button>
+   285→   285→              <Button size="sm" variant="outline" onClick={() => setDeleting(false)}>Cancel</Button>
+   286→   286→            </div>
+   287→   287→          ) : (
+   288→   288→            <>
+   289→   289→              <Button variant="ghost" size="sm" onClick={() => setDeleting(true)} className="text-red-600">Delete</Button>
+   290→   290→              <div className="flex gap-2">
+   291→   291→                {isUpcoming && <Button size="sm" variant="outline" onClick={onRemind}><Icon as={Bell} boundingBox={false} size={14} />Send reminder</Button>}
+   292→   292→                <Button size="sm" onClick={onClose}>Close</Button>
+   293→   293→              </div>
+   294→   294→            </>
+   295→   295→          )}
+   296→   296→        </DialogFooter>
+   297→   297→      </DialogContent>
+   298→   298→    </Dialog>
+   299→   299→  );
+   300→   300→}
+   301→   301→
+   302→   302→function ReminderDialog({ event, onClose }: { event: EventItem; onClose: () => void }) {
+   303→   303→  const [channel, setChannel] = React.useState<"email" | "sms" | "both">("both");
+   304→   304→  const [sending, setSending] = React.useState(false);
+   305→   305→  const [result, setResult] = React.useState<{ emails: number; sms: number; undeliverable: number; totalMembers: number } | null>(null);
+   306→   306→
+   307→   307→  async function send() {
+   308→   308→    setSending(true);
+   309→   309→    const res = await apiRequest<{ emails: number; sms: number; undeliverable: number; totalMembers: number }>("/api/reminders", {
+   310→   310→      method: "POST", body: { eventId: event.id, channel },
+   311→   311→    });
+   312→   312→    setSending(false);
+   313→   313→    if (res.ok && res.data) setResult(res.data);
+   314→   314→    else toast.error(res.error || "Failed to dispatch");
+   315→   315→  }
+   316→   316→
+   317→   317→  return (
+   318→   318→    <Dialog open onOpenChange={onClose}>
+   319→   319→      <DialogContent className="max-w-md">
+   320→   320→        <DialogHeader>
+   321→   321→          <DialogTitle className="flex items-center gap-2"><Icon as={Bell} boundingBox={false} size={18} />Event reminders</DialogTitle>
+   322→   322→          <DialogDescription>{event.title} — {formatDateTime(event.startTime)}</DialogDescription>
+   323→   323→        </DialogHeader>
+   324→   324→        {!result ? (
+   325→   325→          <div className="space-y-4 py-2">
+   326→   326→            <div className="rounded-sm bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+   327→   327→              Reminders are <strong>simulated</strong> in this environment — they write to the audit log but don't deliver actual messages. (PRD §3.5)
+   328→   328→            </div>
+   329→   329→            <div>
+   330→   330→              <Label className="text-sm font-medium mb-2 block">Channel</Label>
+   331→   331→              <Select value={channel} onValueChange={(v: "email" | "sms" | "both") => setChannel(v)}>
+   332→   332→                <SelectTrigger><SelectValue /></SelectTrigger>
+   333→   333→                <SelectContent>
+   334→   334→                  <SelectItem value="both">Email + SMS</SelectItem>
+   335→   335→                  <SelectItem value="email">Email only</SelectItem>
+   336→   336→                  <SelectItem value="sms">SMS only</SelectItem>
+   337→   337→                </SelectContent>
+   338→   338→              </Select>
+   339→   339→            </div>
+   340→   340→          </div>
+   341→   341→        ) : (
+   342→   342→          <div className="py-4 text-center">
+   343→   343→            <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+   344→   344→              <Icon as={Bell} boundingBox={false} size={24} />
+   345→   345→            </div>
+   346→   346→            <h3 className="text-title text-primary">Reminders dispatched</h3>
+   347→   347→            <p className="text-caption mt-1">(Simulated — audit log updated)</p>
+   348→   348→            <div className="grid grid-cols-3 gap-4 max-w-xs mx-auto mt-6">
+   349→   349→              <div><p className="text-2xl font-semibold text-primary">{result.emails}</p><p className="text-caption">Emails</p></div>
+   350→   350→              <div><p className="text-2xl font-semibold text-primary">{result.sms}</p><p className="text-caption">SMS</p></div>
+   351→   351→              <div><p className="text-2xl font-semibold text-primary">{result.undeliverable}</p><p className="text-caption">Undeliverable</p></div>
+   352→   352→            </div>
+   353→   353→          </div>
+   354→   354→        )}
+   355→   355→        <DialogFooter>
+   356→   356→          {!result && <Button size="sm" onClick={send} disabled={sending}>{sending ? "Dispatching…" : "Dispatch reminders"}</Button>}
+   357→   357→          {result && <Button size="sm" onClick={onClose}>Done</Button>}
+   358→   358→        </DialogFooter>
+   359→   359→      </DialogContent>
+   360→   360→    </Dialog>
+   361→   361→  );
+   362→   362→}
+   363→   363→
+   364→   364→// ── Attendance section (3 tabs) ───────────────────────────────────
+   365→   365→export function AttendanceSection() {
+   366→   366→  return (
+   367→   367→    <div>
+   368→   368→      <PageHeader
+   369→   369→        title="Attendance"
+   370→   370→        description="Record and review attendance across services, track trends, and follow up with absent members."
+   371→   371→      />
+   372→   372→      <Tabs defaultValue="event">
+   373→   373→        <TabsList className="mb-4">
+   374→   374→          <TabsTrigger value="event">By Event</TabsTrigger>
+   375→   375→          <TabsTrigger value="member">By Member</TabsTrigger>
+   376→   376→          <TabsTrigger value="trends">Trends</TabsTrigger>
+   377→   377→        </TabsList>
+   378→   378→        <TabsContent value="event"><AttendanceByEvent /></TabsContent>
+   379→   379→        <TabsContent value="member"><AttendanceByMember /></TabsContent>
+   380→   380→        <TabsContent value="trends"><AttendanceTrends /></TabsContent>
+   381→   381→      </Tabs>
+   382→   382→    </div>
+   383→   383→  );
+   384→   384→}
+   385→   385→
+   386→   386→function AttendanceByEvent() {
+   387→   387→  const [eventId, setEventId] = React.useState<string | null>(null);
+   388→   388→  const { data: eventsData } = useFetch<{ events: EventItem[] }>(`/api/events`);
+   389→   389→  const events = eventsData?.events || [];
+   390→   390→  const pastEvents = events.filter((e) => new Date(e.startTime) < new Date());
+   391→   391→
+   392→   392→  if (!eventId) {
+   393→   393→    return (
+   394→   394→      <SectionCard>
+   395→   395→        {pastEvents.length === 0 ? <EmptyState title="No past events" description="Past events will appear here for attendance recording." /> : (
+   396→   396→          <div className="divide-y divide-border">
+   397→   397→            {pastEvents.map((e) => (
+   398→   398→              <button key={e.id} onClick={() => setEventId(e.id)} className="w-full p-4 flex items-center justify-between hover:bg-surface-alt text-left">
+   399→   399→                <div>
+   400→   400→                  <p className="font-medium text-primary">{e.title}</p>
+   401→   401→                  <p className="text-caption">{formatDateTime(e.startTime)} · {e.location || "No location"}</p>
+   402→   402→                </div>
+   403→   403→                <div className="flex items-center gap-3">
+   404→   404→                  <span className="text-caption">{e._count?.attendance || 0} recorded</span>
+   405→   405→                  <Icon as={ChevronRight} boundingBox={false} size={16} className="text-muted-foreground" />
+   406→   406→                </div>
+   407→   407→              </button>
+   408→   408→            ))}
+   409→   409→          </div>
+   410→   410→        )}
+   411→   411→      </SectionCard>
+   412→   412→    );
+   413→   413→  }
+   414→   414→
+   415→   415→  return <EventAttendanceRecorder eventId={eventId} onBack={() => setEventId(null)} />;
+   416→   416→}
+   417→   417→
+   418→   418→function EventAttendanceRecorder({ eventId, onBack }: { eventId: string; onBack: () => void }) {
+   419→   419→  const { data, loading, error, refetch } = useFetch<{ attendance: { id: string; memberId: string; status: string; note: string | null }[]; members: { id: string; firstName: string; lastName: string; phone: string | null }[]; event: EventItem | null }>(`/api/attendance?eventId=${eventId}`);
+   420→   420→  const [changes, setChanges] = React.useState<Record<string, string>>({});
+   421→   421→  const [saving, setSaving] = React.useState(false);
+   422→   422→
+   423→   423→  if (loading) return <LoadingSpinner label="Loading attendance…" />;
+   424→   424→  if (error || !data) return <ErrorState title="Couldn't load attendance" description={error} onRetry={refetch} />;
+   425→   425→
+   426→   426→  const attendanceMap: Record<string, string> = {};
+   427→   427→  for (const a of data.attendance) attendanceMap[a.memberId] = a.status;
+   428→   428→
+   429→   429→  const getStatus = (memberId: string) => changes[memberId] || attendanceMap[memberId] || "present";
+   430→   430→  const dirtyCount = Object.keys(changes).length;
+   431→   431→
+   432→   432→  async function save() {
+   433→   433→    setSaving(true);
+   434→   434→    const records = Object.entries(changes).map(([memberId, status]) => ({ memberId, status }));
+   435→   435→    const res = await apiRequest("/api/attendance", { method: "POST", body: { eventId, records } });
+   436→   436→    setSaving(false);
+   437→   437→    if (res.ok) { toast.success(`Saved attendance for ${records.length} members`); setChanges({}); refetch(); }
+   438→   438→    else toast.error(res.error || "Failed");
+   439→   439→  }
+   440→   440→
+   441→   441→  const STATUSES = ["present", "absent", "excused", "late"];
+   442→   442→
+   443→   443→  return (
+   444→   444→    <SectionCard>
+   445→   445→      <div className="p-4 border-b border-border flex items-center justify-between">
+   446→   446→        <div>
+   447→   447→          <button onClick={onBack} className="text-sm text-muted-foreground hover:text-primary mb-1 inline-flex items-center gap-1">
+   448→   448→            <Icon as={ChevronLeft} boundingBox={false} size={14} />Back to events
+   449→   449→          </button>
+   450→   450→          <h3 className="text-title text-primary">{data.event?.title}</h3>
+   451→   451→          <p className="text-caption">{formatDateTime(data.event?.startTime)}</p>
+   452→   452→        </div>
+   453→   453→        {dirtyCount > 0 && (
+   454→   454→          <Button size="sm" onClick={save} disabled={saving}>
+   455→   455→            {saving ? "Saving…" : `Save (${dirtyCount})`}
+   456→   456→          </Button>
+   457→   457→        )}
+   458→   458→      </div>
+   459→   459→      <div className="max-h-[60vh] overflow-y-auto scrollbar-thin divide-y divide-border">
+   460→   460→        {data.members.map((m) => {
+   461→   461→          const status = getStatus(m.id);
+   462→   462→          return (
+   463→   463→            <div key={m.id} className="p-3 flex items-center justify-between gap-3">
+   464→   464→              <div className="flex items-center gap-3 min-w-0">
+   465→   465→                <div className="w-8 h-8 rounded-full bg-surface-alt flex items-center justify-center text-xs font-semibold text-primary shrink-0">
+   466→   466→                  {(m.firstName[0] || "") + (m.lastName[0] || "")}
+   467→   467→                </div>
+   468→   468→                <span className="text-sm text-foreground truncate">{m.firstName} {m.lastName}</span>
+   469→   469→              </div>
+   470→   470→              <div className="flex items-center gap-1 shrink-0">
+   471→   471→                {STATUSES.map((s) => (
+   472→   472→                  <button
+   473→   473→                    key={s}
+   474→   474→                    onClick={() => setChanges({ ...changes, [m.id]: s })}
+   475→   475→                    className={cn(
+   476→   476→                      "px-2.5 py-1 rounded-sm text-[11px] font-medium capitalize border transition-colors",
+   477→   477→                      status === s ? statusClass(s) : "border-border text-muted-foreground hover:bg-surface-alt"
+   478→   478→                    )}
+   479→   479→                  >
+   480→   480→                    {s}
+   481→   481→                  </button>
+   482→   482→                ))}
+   483→   483→              </div>
+   484→   484→            </div>
+   485→   485→          );
+   486→   486→        })}
+   487→   487→      </div>
+   488→   488→      <div className="p-4 border-t border-border flex items-center justify-between text-caption">
+   489→   489→        <span>{data.members.length} members · {data.attendance.length} previously recorded</span>
+   490→   490→        <span>Present: {data.members.filter((m) => getStatus(m.id) === "present").length}</span>
+   491→   491→      </div>
+   492→   492→    </SectionCard>
+   493→   493→  );
+   494→   494→}
+   495→   495→
+   496→   496→function AttendanceByMember() {
+   497→   497→  const [memberId, setMemberId] = React.useState<string | null>(null);
+   498→   498→  const { data: membersData } = useFetch<{ members: { id: string; firstName: string; lastName: string }[] }>(`/api/members?limit=200`);
+   499→   499→
+   500→   500→  if (!memberId) {
+   501→   501→    return (
+   502→   502→      <SectionCard>
+   503→   503→        <div className="p-4 border-b border-border"><p className="text-sm font-medium text-primary">Select a member to view their attendance history</p></div>
+   504→   504→        <div className="max-h-[60vh] overflow-y-auto scrollbar-thin divide-y divide-border">
+   505→   505→          {membersData?.members.map((m) => (
+   506→   506→            <button key={m.id} onClick={() => setMemberId(m.id)} className="w-full p-3 flex items-center justify-between hover:bg-surface-alt text-left">
+   507→   507→              <span className="text-sm text-foreground">{m.firstName} {m.lastName}</span>
+   508→   508→              <Icon as={ChevronRight} boundingBox={false} size={16} className="text-muted-foreground" />
+   509→   509→            </button>
+   510→   510→          ))}
+   511→   511→        </div>
+   512→   512→      </SectionCard>
+   513→   513→    );
+   514→   514→  }
+   515→   515→
+   516→   516→  return <MemberAttendanceHistory memberId={memberId} onBack={() => setMemberId(null)} />;
+   517→   517→}
+   518→   518→
+   519→   519→function MemberAttendanceHistory({ memberId, onBack }: { memberId: string; onBack: () => void }) {
+   520→   520→  const { data, loading, error } = useFetch<{ records: { id: string; status: string; note: string | null; recordedAt: string; event: { id: string; title: string; startTime: string } }[] }>(`/api/attendance?memberId=${memberId}`);
+   521→   521→  if (loading) return <LoadingSpinner label="Loading…" />;
+   522→   522→  if (error || !data) return <ErrorState title="Couldn't load" description={error} onRetry={() => window.location.reload()} />;
+   523→   523→
+   524→   524→  const present = data.records.filter((r) => r.status === "present").length;
+   525→   525→  const rate = data.records.length > 0 ? Math.round((present / data.records.length) * 100) : 0;
+   526→   526→
+   527→   527→  return (
+   528→   528→    <SectionCard>
+   529→   529→      <div className="p-4 border-b border-border">
+   530→   530→        <button onClick={onBack} className="text-sm text-muted-foreground hover:text-primary mb-2 inline-flex items-center gap-1">
+   531→   531→          <Icon as={ChevronLeft} boundingBox={false} size={14} />Back to members
+   532→   532→        </button>
+   533→   533→        <div className="grid grid-cols-3 gap-4">
+   534→   534→          <div><p className="text-2xl font-semibold text-primary">{data.records.length}</p><p className="text-caption">Total events</p></div>
+   535→   535→          <div><p className="text-2xl font-semibold text-primary">{present}</p><p className="text-caption">Present</p></div>
+   536→   536→          <div><p className="text-2xl font-semibold text-primary">{rate}%</p><p className="text-caption">Attendance rate</p></div>
+   537→   537→        </div>
+   538→   538→      </div>
+   539→   539→      <div className="divide-y divide-border max-h-[55vh] overflow-y-auto scrollbar-thin">
+   540→   540→        {data.records.length === 0 ? <EmptyState title="No attendance recorded" /> : data.records.map((r) => (
+   541→   541→          <div key={r.id} className="p-3 flex items-center justify-between">
+   542→   542→            <div>
+   543→   543→              <p className="text-sm font-medium text-primary">{r.event.title}</p>
+   544→   544→              <p className="text-caption">{formatDate(r.event.startTime)}</p>
+   545→   545→            </div>
+   546→   546→            <span className={cn("inline-flex items-center px-2 py-0.5 rounded-sm border text-xs font-medium capitalize", statusClass(r.status))}>{r.status}</span>
+   547→   547→          </div>
+   548→   548→        ))}
+   549→   549→      </div>
+   550→   550→    </SectionCard>
+   551→   551→  );
+   552→   552→}
+   553→   553→
+   554→   554→function AttendanceTrends() {
+   555→   555→  const { data, loading } = useFetch<{ recent: { id: string; status: string; event: { title: string; startTime: string } }[] }>(`/api/attendance`);
+   556→   556→  const { data: statsData } = useFetch<{ attendanceTrend: { label: string; present: number; title: string }[] }>("/api/stats");
+   557→   557→
+   558→   558→  if (loading) return <LoadingSpinner label="Loading trends…" />;
+   559→   559→
+   560→   560→  const trend = statsData?.attendanceTrend || [];
+   561→   561→  const maxPresent = Math.max(...trend.map((t) => t.present), 1);
+   562→   562→
+   563→   563→  return (
+   564→   564→    <div className="space-y-4">
+   565→   565→      <SectionCard className="p-6">
+   566→   566→        <h3 className="text-title text-primary mb-4">Weekly attendance (last 8 services)</h3>
+   567→   567→        <div className="space-y-3">
+   568→   568→          {trend.map((t, i) => (
+   569→   569→            <div key={i} className="flex items-center gap-3">
+   570→   570→              <span className="text-caption w-12 shrink-0">{t.label}</span>
+   571→   571→              <div className="flex-1 h-7 bg-surface-alt rounded-sm overflow-hidden">
+   572→   572→                <div className="h-full bg-primary rounded-sm flex items-center justify-end pr-2" style={{ width: `${(t.present / maxPresent) * 100}%` }}>
+   573→   573→                  <span className="text-[11px] font-semibold text-primary-foreground">{t.present}</span>
+   574→   574→                </div>
+   575→   575→              </div>
+   576→   576→            </div>
+   577→   577→          ))}
+   578→   578→        </div>
+   579→   579→      </SectionCard>
+   580→   580→
+   581→   581→      <SectionCard className="p-6">
+   582→   582→        <h3 className="text-title text-primary mb-4">Recent attendance records</h3>
+   583→   583→        {data?.recent.length === 0 ? <EmptyState title="No records yet" /> : (
+   584→   584→          <div className="divide-y divide-border">
+   585→   585→            {data?.recent.slice(0, 15).map((r) => (
+   586→   586→              <div key={r.id} className="py-2.5 flex items-center justify-between">
+   587→   587→                <div>
+   588→   588→                  <p className="text-sm text-foreground">{r.event.title}</p>
+   589→   589→                  <p className="text-caption">{formatDate(r.event.startTime)}</p>
+   590→   590→                </div>
+   591→   591→                <span className={cn("inline-flex items-center px-2 py-0.5 rounded-sm border text-xs font-medium capitalize", statusClass(r.status))}>{r.status}</span>
+   592→   592→              </div>
+   593→   593→            ))}
+   594→   594→          </div>
+   595→   595→        )}
+   596→   596→      </SectionCard>
+   597→   597→    </div>
+   598→   598→  );
+   599→   599→}
+   600→   600→

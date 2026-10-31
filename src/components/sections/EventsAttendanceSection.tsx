@@ -17,9 +17,11 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   CalendarDays, Plus, MapPin, Clock, Users, Bell, ChevronLeft, ChevronRight,
-  List, Grid,
+  List, Grid, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DateRangePickerDropdown, type DateRange, type DateRangePreset } from "@/components/motion/date-range-picker";
+import { DateTimeField, localDateTimeKey } from "@/components/forms/pickers";
 
 export function EventsSection() {
   const [view, setView] = React.useState<"list" | "calendar">("list");
@@ -27,8 +29,22 @@ export function EventsSection() {
   const [showAdd, setShowAdd] = React.useState(false);
   const [reminding, setReminding] = React.useState<EventItem | null>(null);
   const [selected, setSelected] = React.useState<EventItem | null>(null);
+  const [range, setRange] = React.useState<DateRange | null>(null);
+  // Presets computed in UTC to line up with the API's UTC day boundaries.
+  const [presets] = React.useState<DateRangePreset[]>(() => {
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const daysFromNow = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
+    const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).toISOString().slice(0, 10);
+    return [
+      { label: "Next 7 days", value: { from: today, to: daysFromNow(6) } },
+      { label: "Next 30 days", value: { from: today, to: daysFromNow(29) } },
+      { label: "This month", value: { from: `${today.slice(0, 7)}-01`, to: monthEnd } },
+    ];
+  });
 
-  const { data, loading, error, refetch } = useFetch<{ events: EventItem[] }>(`/api/events?category=${category}`);
+  const rangeQuery = range?.to ? `&from=${range.from}&to=${range.to}` : "";
+  const { data, loading, error, refetch } = useFetch<{ events: EventItem[] }>(`/api/events?category=${category}${rangeQuery}`);
   const events = data?.events || [];
 
   return (
@@ -38,6 +54,20 @@ export function EventsSection() {
         description="Service calendar — schedule services, meetings, and activities. Dispatch reminders to the congregation."
         actions={
           <>
+            <DateRangePickerDropdown
+              value={range}
+              onValueChange={setRange}
+              presets={presets}
+              closeOnSelect
+              label="Event date range"
+              placeholder="All dates"
+              triggerClassName="w-44"
+            />
+            {range?.to && (
+              <Button variant="outline" size="sm" className="h-9 px-2" aria-label="Clear date range filter" onClick={() => setRange(null)}>
+                <Icon as={X} boundingBox={false} size={14} />
+              </Button>
+            )}
             <div className="flex items-center rounded-sm border border-border p-1 bg-surface">
               <button onClick={() => setView("list")} className={cn("px-3 h-7 rounded-sm text-sm inline-flex items-center gap-1.5", view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>
                 <Icon as={List} boundingBox={false} size={14} />List
@@ -205,13 +235,14 @@ function CalendarView({ events, onSelect }: { events: EventItem[]; onSelect: (e:
 function AddEventDialog({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [form, setForm] = React.useState({
     title: "", description: "", category: "service", location: "",
-    startTime: new Date(Date.now() + 86400000).toISOString().slice(0, 16),
+    startTime: localDateTimeKey(new Date(Date.now() + 86_400_000)),
     endTime: "", capacity: "",
   });
   const [saving, setSaving] = React.useState(false);
 
   async function handleSubmit() {
     if (!form.title) { toast.error("Title required"); return; }
+    if (!form.startTime) { toast.error("Pick a start date and time"); return; }
     setSaving(true);
     const res = await apiRequest("/api/events", { method: "POST", body: { ...form, endTime: form.endTime || null, capacity: form.capacity ? parseInt(form.capacity) : null } });
     setSaving(false);
@@ -239,8 +270,8 @@ function AddEventDialog({ onClose, onSaved }: { onClose: () => void; onSaved: ()
               </Select>
             </div>
             <div><Label className="text-sm font-medium mb-2 block">Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
-            <div><Label className="text-sm font-medium mb-2 block">Starts *</Label><Input type="datetime-local" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} /></div>
-            <div><Label className="text-sm font-medium mb-2 block">Ends</Label><Input type="datetime-local" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} /></div>
+            <DateTimeField dateLabel="Starts *" timeLabel="Start time" className="col-span-2" value={form.startTime} onChange={(startTime) => setForm({ ...form, startTime })} />
+            <DateTimeField dateLabel="Ends" timeLabel="End time" className="col-span-2" value={form.endTime} onChange={(endTime) => setForm({ ...form, endTime })} />
             <div><Label className="text-sm font-medium mb-2 block">Capacity</Label><Input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} /></div>
           </div>
         </div>

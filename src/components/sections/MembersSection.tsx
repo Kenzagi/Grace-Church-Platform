@@ -28,6 +28,7 @@ import {
   X, ChevronRight, Trash2, Pencil, UserPlus, FileText, Check, AlertCircle,
   Camera, Loader2,
 } from "lucide-react";
+import { DateField, todayKey } from "@/components/forms/pickers";
 import type { LucideIcon } from "lucide-react";
 
 export function MembersSection() {
@@ -623,15 +624,15 @@ function MemberEditForm({ member, onSaved, onCancel }: { member: Member; onSaved
         <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
         <Field label="Phone"><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
         <Field label="Address" className="col-span-2"><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></Field>
-        <Field label="Date of birth">
-          <Input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} />
+        <div>
+          <DateField label="Date of birth" value={form.dateOfBirth} onChange={(dateOfBirth) => setForm({ ...form, dateOfBirth })} maxDate={todayKey()} />
           {!form.dateOfBirth && (
             <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 flex items-center gap-1">
               <Icon as={AlertCircle} boundingBox={false} size={12} />
               Recommended: needed for age-based group assignment
             </p>
           )}
-        </Field>
+        </div>
         <Field label="Gender" required>
           <Select value={form.gender} onValueChange={(v) => setForm({ ...form, gender: v })}>
             <SelectTrigger>
@@ -774,15 +775,15 @@ function MemberFormDialog({ groups: initialGroups, households, onClose, onSaved 
             <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
             <Field label="Phone"><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
             <Field label="Address" className="col-span-2"><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></Field>
-            <Field label="Date of birth">
-              <Input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} />
+            <div>
+              <DateField label="Date of birth" value={form.dateOfBirth} onChange={(dateOfBirth) => setForm({ ...form, dateOfBirth })} maxDate={todayKey()} />
               {!form.dateOfBirth && (
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 flex items-center gap-1">
                   <Icon as={AlertCircle} boundingBox={false} size={12} />
                   Recommended: needed for age-based group assignment
                 </p>
               )}
-            </Field>
+            </div>
             <Field label="Status">
               <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>

@@ -15,11 +15,13 @@ async function _handleGET(req: NextRequest) {
   const to = searchParams.get("to");
 
   const where: Record<string, unknown> = { orgId: session.orgId };
+  // from/to are plain YYYY-MM-DD days (picker wire format); `to` is inclusive.
+  const isDay = (v: string | null): v is string => !!v && /^\d{4}-\d{2}-\d{2}$/.test(v);
   if (upcoming === "true") where.startTime = { gte: new Date() };
-  else if (from || to) {
+  else if (isDay(from) && isDay(to)) {
     where.startTime = {
-      ...(from && { gte: new Date(from) }),
-      ...(to && { lte: new Date(to) }),
+      gte: new Date(`${from}T00:00:00.000Z`),
+      lt: new Date(new Date(`${to}T00:00:00.000Z`).getTime() + 86_400_000),
     };
   }
   if (category && category !== "all") where.category = category;

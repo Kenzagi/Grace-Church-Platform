@@ -12,9 +12,10 @@ import { apiRequest } from "@/hooks/use-fetch";
 import { statusClass, formatDate } from "@/lib/format";
 import {
   Church, CheckCircle2, Mail, Loader2, ArrowRight, ArrowLeft,
-  FileText, Headphones, Video, Inbox, User, Home, CalendarDays,
+  FileText, Headphones, Video, Inbox, User, Home,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { DateField, todayKey } from "@/components/forms/pickers";
 
 /**
  * Public member media portal — /portal
@@ -111,7 +112,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [form, setForm] = React.useState({
-    title: "", type: "video", seriesId: "none", date: new Date().toISOString().slice(0, 10),
+    title: "", type: "video", seriesId: "none", date: todayKey(),
     description: "", url: "", duration: "",
   });
   const [result, setResult] = React.useState<{ reference: string; title: string; memberName: string; household: string | null } | null>(null);
@@ -214,7 +215,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
     setMemberName("");
     setHousehold(null);
     setSeries([]);
-    setForm({ title: "", type: "video", seriesId: "none", date: new Date().toISOString().slice(0, 10), description: "", url: "", duration: "" });
+    setForm({ title: "", type: "video", seriesId: "none", date: todayKey(), description: "", url: "", duration: "" });
     setResult(null);
     setError(null);
   }
@@ -416,17 +417,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="portal-date">Date</Label>
-            <div className="relative">
-              <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <Input
-                id="portal-date"
-                type="date"
-                value={form.date}
-                onChange={(e) => setForm({ ...form, date: e.target.value })}
-                className="pl-10"
-              />
-            </div>
+            <DateField id="portal-date" label="Date" value={form.date} onChange={(date) => setForm({ ...form, date })} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="portal-duration">Duration (minutes)</Label>

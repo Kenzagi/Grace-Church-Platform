@@ -158,6 +158,48 @@
   --sidebar-ring: #fafafa;
 }
 
+/* ── Vendored picker tokens (src/components/arc/*) ────────────────────────
+   uiarc registry components style themselves through these custom properties.
+   Values map onto the PRD §4.1 palette above so pickers match inputs, buttons
+   and dark mode without touching the vendored sources. The beui components
+   (src/components/motion/*) use Tailwind utilities only and need no bridge. */
+:root {
+  --surface-muted: #f7f7f7;
+  --surface-raised: #ffffff;
+  --border-strong: #949494;
+  --border-subtle: #e2e2e2;
+  --text-muted: #5a5a5a;
+  --text-secondary: #5a5a5a;
+  --accent-strong: #e0e0e0;
+  --control-height-md: 36px;
+  --radius-control: 16px;
+  --radius-panel: 16px;
+  --radius-pill: 9999px;
+  --font-body: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --leading-body: 1.5;
+  --tracking-body: -0.01em;
+  --duration-fast: 160ms;
+  --duration-spring: 380ms;
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.32, 1.35, 0.55, 1);
+  --space-2: 8px;
+  --shadow-floating: 0 12px 32px rgb(0 0 0 / 0.14), 0 2px 8px rgb(0 0 0 / 0.08);
+}
+
+.dark {
+  --surface-muted: #262626;
+  --surface-raised: #1f1f1f;
+  --border-strong: #525252;
+  --border-subtle: #222222;
+  --text-muted: #a3a3a3;
+  --text-secondary: #a3a3a3;
+  --accent-strong: #333333;
+  --shadow-floating: 0 12px 32px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.4);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

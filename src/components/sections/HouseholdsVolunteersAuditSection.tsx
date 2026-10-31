@@ -19,6 +19,7 @@ import {
   HandHeart, UserPlus, Calendar, Check, AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DateRangePickerDropdown, type DateRange, type DateRangePreset } from "@/components/motion/date-range-picker";
 
 // ── Households ────────────────────────────────────────────────────
 export function HouseholdsSection() {
@@ -443,7 +444,20 @@ function AssignDialog({ role, eventId, onClose, onDone }: { role: VolunteerRole;
 export function AuditLogSection() {
   const [action, setAction] = React.useState("all");
   const [entity, setEntity] = React.useState("all");
-  const { data, loading, error } = useFetch<{ logs: any[]; actions: string[]; entities: string[] }>(`/api/audit-logs?action=${action}&entity=${entity}&limit=200`);
+  const [range, setRange] = React.useState<DateRange | null>(null);
+  // Presets computed in UTC to line up with the API's UTC day boundaries.
+  const [presets] = React.useState<DateRangePreset[]>(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
+    return [
+      { label: "Last 7 days", value: { from: daysAgo(6), to: today } },
+      { label: "Last 30 days", value: { from: daysAgo(29), to: today } },
+      { label: "This month", value: { from: `${today.slice(0, 7)}-01`, to: today } },
+    ];
+  });
+
+  const rangeQuery = range?.to ? `&from=${range.from}&to=${range.to}` : "";
+  const { data, loading, error } = useFetch<{ logs: any[]; actions: string[]; entities: string[] }>(`/api/audit-logs?action=${action}&entity=${entity}${rangeQuery}&limit=200`);
 
   const logs = data?.logs || [];
 
@@ -454,6 +468,20 @@ export function AuditLogSection() {
         description="Immutable record of every action across the platform — compliance and forensic trail."
         actions={
           <>
+            <DateRangePickerDropdown
+              value={range}
+              onValueChange={setRange}
+              presets={presets}
+              closeOnSelect
+              label="Audit log date range"
+              placeholder="All dates"
+              triggerClassName="w-44"
+            />
+            {range?.to && (
+              <Button variant="outline" size="sm" className="h-9 px-2" aria-label="Clear date range filter" onClick={() => setRange(null)}>
+                <Icon as={X} boundingBox={false} size={14} />
+              </Button>
+            )}
             <Select value={action} onValueChange={setAction}>
               <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Action" /></SelectTrigger>
               <SelectContent>

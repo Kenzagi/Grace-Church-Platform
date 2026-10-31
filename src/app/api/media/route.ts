@@ -42,7 +42,7 @@ async function _handlePOST(req: NextRequest) {
 
   const session = await requireWriteSession();
   const body = await req.json();
-  const { title, description, type, url, duration, speakerId, seriesId } = parseBody(createMediaSchema, body);
+  const { title, description, type, url, duration, speakerId, seriesId, date: mediaDate } = parseBody(createMediaSchema, body);
   if (!title) return ok({ error: "Title is required" }, { status: 400 });
 
   // Security: speaker and series must belong to this org (PRD §7.2)
@@ -59,7 +59,9 @@ async function _handlePOST(req: NextRequest) {
       duration: duration || null,
       speakerId: speakerId || null,
       seriesId: seriesId || null,
-      date: new Date(),
+      // Noon-UTC convention (same as portal submissions): the picked calendar
+      // date stays the same in every display timezone.
+      date: mediaDate ? new Date(`${mediaDate}T12:00:00.000Z`) : new Date(),
       status: "published",
     },
   });
