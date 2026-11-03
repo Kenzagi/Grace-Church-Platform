@@ -5,9 +5,13 @@ import { ok, unauthorized, badRequest, tooManyRequests, withErrorHandler } from 
 import { writeAudit } from "@/lib/audit";
 import { verifyPassword, hashPassword, needsRehash } from "@/lib/password";
 import { parseBody, loginSchema } from "@/lib/validations";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, checkWriteRateLimit, clientIp } from "@/lib/rate-limit";
 
 async function _handlePOST(req: NextRequest) {
+  // Per-IP sliding window — blocks attackers rotating target emails (PRD §5: 10 req/min)
+  const ipLimited = checkWriteRateLimit(req, "login-ip", 10, 60 * 1000);
+  if (ipLimited) return ipLimited;
+
   const body = await req.json();
   const { email: rawEmail, password } = parseBody(loginSchema, body);
 

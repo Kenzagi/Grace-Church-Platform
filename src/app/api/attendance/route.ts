@@ -3,7 +3,9 @@ import { db } from "@/lib/db";
 import { requireSession, requireWriteSession } from "@/lib/auth";
 import { ok, badRequest, notFound, withErrorHandler } from "@/lib/api";
 import { writeAudit } from "@/lib/audit";
-import { parseBody, bulkAttendanceSchema, attendanceRecordSchema } from "@/lib/validations";
+import { parseBody, bulkAttendanceSchema, singleAttendanceSchema } from "@/lib/validations";
+import { checkWriteRateLimit } from "@/lib/rate-limit";
+import { findInvalidMemberIds } from "@/lib/scope";
 
 async function _handleGET(req: NextRequest) {
   const session = await requireSession();
@@ -54,6 +56,9 @@ async function _handleGET(req: NextRequest) {
 }
 
 async function _handlePOST(req: NextRequest) {
+  const limited = checkWriteRateLimit(req, "attendance-write");
+  if (limited) return limited;
+
   const session = await requireWriteSession();
   const body = await req.json();
   const { eventId, records } = parseBody(bulkAttendanceSchema, body);
@@ -61,15 +66,23 @@ async function _handlePOST(req: NextRequest) {
   const event = await db.event.findFirst({ where: { id: eventId, orgId: session.orgId } });
   if (!event) return notFound("Event not found");
 
-  let upserted = 0;
-  for (const r of records) {
-    await db.attendance.upsert({
-      where: { eventId_memberId: { eventId, memberId: r.memberId } },
-      update: { status: r.status, note: r.note ?? null, recordedAt: new Date() },
-      create: { eventId, memberId: r.memberId, status: r.status, note: r.note ?? null },
-    });
-    upserted++;
-  }
+  // Security: every marked member must belong to this org (PRD §7.2)
+  const invalidMembers = await findInvalidMemberIds(session.orgId, records.map((r) => r.memberId));
+  if (invalidMembers.length) return badRequest("One or more members do not exist in your organization");
+
+  // Bulk upsert runs atomically (PRD §7.3)
+  const upserted = await db.$transaction(async (tx) => {
+    let count = 0;
+    for (const r of records) {
+      await tx.attendance.upsert({
+        where: { eventId_memberId: { eventId, memberId: r.memberId } },
+        update: { status: r.status, note: r.note ?? null, recordedAt: new Date() },
+        create: { eventId, memberId: r.memberId, status: r.status, note: r.note ?? null },
+      });
+      count++;
+    }
+    return count;
+  });
 
   await writeAudit({
     orgId: session.orgId, adminId: session.adminId,
@@ -81,17 +94,20 @@ async function _handlePOST(req: NextRequest) {
 }
 
 async function _handlePATCH(req: NextRequest) {
+  const limited = checkWriteRateLimit(req, "attendance-write");
+  if (limited) return limited;
+
   const session = await requireWriteSession();
   const body = await req.json();
-  const { eventId, memberId, status, note } = body;
-  if (!eventId || !memberId || !status) return badRequest("eventId, memberId, and status are required");
-  // Validate status enum
-  const validStatuses = ["present", "absent", "excused", "late"] as const;
-  if (!validStatuses.includes(status)) return badRequest(`Invalid status: ${status}`);
+  const { eventId, memberId, status, note } = parseBody(singleAttendanceSchema, body);
 
   // Verify the event belongs to this org
   const event = await db.event.findFirst({ where: { id: eventId, orgId: session.orgId } });
   if (!event) return notFound("Event not found");
+
+  // Security: the marked member must belong to this org (PRD §7.2)
+  const invalidMember = await findInvalidMemberIds(session.orgId, [memberId]);
+  if (invalidMember.length) return badRequest("Member does not exist in your organization");
 
   await db.attendance.upsert({
     where: { eventId_memberId: { eventId, memberId } },

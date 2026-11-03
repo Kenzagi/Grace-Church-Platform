@@ -43,7 +43,7 @@ export function MemberAvatar({
   return (
     <div
       className={cn(
-        "rounded-full overflow-hidden flex items-center justify-center font-semibold text-primary-foreground bg-primary shrink-0",
+        "rounded-full overflow-hidden flex items-center justify-center font-medium text-primary-foreground bg-primary shrink-0",
         SIZES[size],
         className
       )}

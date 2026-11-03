@@ -10,10 +10,11 @@ A full-featured church management system built with **Next.js 16**, **React 19**
 - **Attendance Tracking** — Per-event attendance with statuses (present/absent/excused/late)
 - **Events** — Create services, meetings, and activities with reminders
 - **Sermon Media Library** — Sermons, series, and media submissions with review queue
-- **Volunteer Scheduling** — Roles, capacity, and event-based assignments
+- **Member Media Portal** — Members submit sermons and track review status at `/portal` (public, rate-limited, no account needed)
+- **Volunteer Scheduling** — Roles, capacity, and event-based assignments with per-event capacity overrides
 - **RBAC Auth** — Admin, Editor, and Viewer roles with session cookies
-- **Audit Logging** — Immutable action history for all write operations
-- **Dark/Light Theme** — System-aware with manual toggle
+- **Audit Logging** — Immutable action history for all write operations (portal actions included)
+- **Refined Dark UI** — Linear-style dark-first interface with Inter typography and custom date/time/range pickers
 
 ## Tech Stack
 
@@ -146,6 +147,7 @@ Visit your Vercel URL, log in with `admin@grace.community` / `grace2026`, and ex
 ## Production Checklist
 
 - [ ] Change the default admin password
+- [ ] Run `prisma/production-migration.sql` on an **existing** production database (backfills required member fields, adds the `EventVolunteerNeed` table — not needed for a fresh database)
 - [ ] Remove or disable the `/api/seed` endpoint (it's blocked by default in production)
 - [ ] Set up cloud storage for member photo uploads (e.g., Vercel Blob, S3)
 - [ ] Configure a custom domain in Vercel
@@ -167,10 +169,12 @@ src/
 │   └── AppShell.tsx    # Sidebar navigation
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utilities (auth, db, validations, etc.)
-└── middleware.ts       # API route auth guard
+└── proxy.ts            # API route auth guard (Next 16 middleware convention)
 prisma/
-├── schema.prisma       # Database schema (14 models)
-└── seed.ts             # Demo data seeder
+├── schema.prisma            # Database schema (19 models)
+├── production-migration.sql # SQL patch for existing production databases
+└── seed.ts                  # Demo data seeder
+docs/design/               # Architecture, members-workflow and ER diagrams + PDF report
 ```
 
 ## License

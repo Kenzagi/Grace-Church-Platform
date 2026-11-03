@@ -4,6 +4,8 @@ import { requireSession, requireWriteSession } from "@/lib/auth";
 import { ok, created, withErrorHandler } from "@/lib/api";
 import { writeAudit } from "@/lib/audit";
 import { parseBody, createVolunteerRoleSchema } from "@/lib/validations";
+import { checkWriteRateLimit } from "@/lib/rate-limit";
+import { checkOrgGroup } from "@/lib/scope";
 
 async function _handleGET(req: NextRequest) {
   const session = await requireSession();
@@ -17,17 +19,30 @@ async function _handleGET(req: NextRequest) {
       assignments: eventId
         ? { where: { eventId }, include: { member: { select: { id: true, firstName: true, lastName: true, phone: true } } } }
         : { include: { member: { select: { id: true, firstName: true, lastName: true } }, event: { select: { id: true, title: true, startTime: true } } } },
+      ...(eventId ? { needs: { where: { eventId } } } : {}),
     },
     orderBy: { name: "asc" },
   });
-  return ok({ roles });
+  // Per-event capacity override (EventVolunteerNeed) — null when the role's
+  // default applies. One role can hold at most one need per event.
+  const withCapacity = eventId
+    ? roles.map(({ needs, ...role }) => ({ ...role, capacityOverride: needs?.[0]?.capacity ?? null }))
+    : roles.map((role) => ({ ...role, capacityOverride: null }));
+  return ok({ roles: withCapacity });
 }
 
 async function _handlePOST(req: NextRequest) {
+  const limited = checkWriteRateLimit(req, "volunteers-write");
+  if (limited) return limited;
+
   const session = await requireWriteSession();
   const body = await req.json();
   const { name, capacity, groupId } = parseBody(createVolunteerRoleSchema, body);
   if (!name) return ok({ error: "Name required" }, { status: 400 });
+
+  // Security: linked group must belong to this org (PRD §7.2)
+  const invalidGroup = await checkOrgGroup(session.orgId, groupId);
+  if (invalidGroup) return invalidGroup;
   const role = await db.volunteerRole.create({
     data: {
       orgId: session.orgId,

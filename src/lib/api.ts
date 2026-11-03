@@ -43,6 +43,8 @@ export function serverError(message?: string, details?: unknown) {
 /**
  * Wraps an async handler so UNAUTHORIZED / FORBIDDEN / validation errors
  * map to the correct status code without every route repeating try/catch.
+ * Internal error details never reach the client: the full error is logged
+ * server-side while the response carries a user-friendly message (PRD §7.3).
  */
 export function withErrorHandler<TArgs extends unknown[]>(
   handler: (...args: TArgs) => Promise<NextResponse>
@@ -55,11 +57,31 @@ export function withErrorHandler<TArgs extends unknown[]>(
       if (msg === "UNAUTHORIZED") return unauthorized();
       if (msg === "FORBIDDEN") return forbidden();
       if (msg.startsWith("VALIDATION:")) return badRequest(msg.slice("VALIDATION:".length).trim());
-      // Log the real error server-side for debugging
-      console.error("[API Error]", msg);
+
+      // Friendly messages for known Prisma errors — internals stay server-side
+      const friendly = friendlyPrismaError(e);
+      // Log the real error server-side for debugging (full object incl. stack)
+      console.error("[API Error]", e);
+      if (friendly) return badRequest(friendly);
       return serverError(msg);
     }
   };
+}
+
+/**
+ * Maps common Prisma error codes to user-friendly messages.
+ * Returns null for unrecognized errors.
+ */
+function friendlyPrismaError(e: unknown): string | null {
+  const err = e as { code?: string; meta?: { target?: string[] | string } };
+  if (err?.code === "P2002") {
+    const target = Array.isArray(err.meta?.target) ? err.meta.target.join(", ") : err.meta?.target;
+    if (target?.includes("email")) return "A record with this email already exists";
+    return "A record with these unique details already exists";
+  }
+  if (err?.code === "P2025") return "The record to update or delete no longer exists";
+  if (err?.code === "P2003") return "This record is referenced by other records and cannot be modified";
+  return null;
 }
 
 /**

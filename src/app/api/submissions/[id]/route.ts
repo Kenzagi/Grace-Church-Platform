@@ -3,11 +3,15 @@ import { db } from "@/lib/db";
 import { requireSession, requireWriteSession } from "@/lib/auth";
 import { ok, notFound, withErrorHandler } from "@/lib/api";
 import { writeAudit } from "@/lib/audit";
+import { checkWriteRateLimit } from "@/lib/rate-limit";
 import { parseBody, reviewSubmissionSchema } from "@/lib/validations";
 
 type Params = { params: Promise<{ id: string }> };
 
 async function _handlePATCH(req: NextRequest, { params }: Params) {
+  const limited = checkWriteRateLimit(req, "submissions-write");
+  if (limited) return limited;
+
   const session = await requireWriteSession();
   const { id } = await params;
   const body = await req.json();
@@ -34,7 +38,13 @@ async function _handlePATCH(req: NextRequest, { params }: Params) {
       ? [
           db.mediaItem.update({
             where: { id: sub.mediaItemId },
-            data: { status: "published" },
+            data: {
+              status: "published",
+              // Ensure the submitting member's name is saved on the media
+              // item — it's what the Media Library displays as the speaker.
+              // Only backfills when no speaker was previously set.
+              ...(sub.mediaItem.speakerId ? {} : { speakerId: sub.memberId }),
+            },
           }),
         ]
       : []),

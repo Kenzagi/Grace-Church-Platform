@@ -60,3 +60,37 @@ export function rateLimitRemaining(
   if (!entry || now >= entry.resetAt) return maxRequests;
   return Math.max(0, maxRequests - entry.count);
 }
+
+import { NextRequest, NextResponse } from "next/server";
+
+/** Extract the client IP from proxy headers (Vercel / Caddy set x-forwarded-for). */
+export function clientIp(req: NextRequest): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+/**
+ * Sliding-window rate limit for write endpoints (PRD v2.0 §7.2).
+ * Keyed by client IP + route bucket. Returns a 429 response when blocked,
+ * or null when the request may proceed.
+ */
+export function checkWriteRateLimit(
+  req: NextRequest,
+  bucket: string,
+  maxRequests = 60,
+  windowMs = 60 * 1000
+): NextResponse | null {
+  const { blocked, retryAfterMs } = rateLimit(`${bucket}:${clientIp(req)}`, {
+    maxRequests,
+    windowMs,
+  });
+  if (!blocked) return null;
+  const retryAfterSec = Math.ceil(retryAfterMs / 1000);
+  return NextResponse.json(
+    { error: `Too many requests. Try again in ${retryAfterSec}s.` },
+    { status: 429, headers: { "Retry-After": String(retryAfterSec) } }
+  );
+}

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireSession, requireWriteSession } from "@/lib/auth";
 import { ok, badRequest, withErrorHandler } from "@/lib/api";
 import { writeAudit } from "@/lib/audit";
+import { checkWriteRateLimit } from "@/lib/rate-limit";
 import { parseBody, sendReminderSchema } from "@/lib/validations";
 
 /**
@@ -11,6 +12,9 @@ import { parseBody, sendReminderSchema } from "@/lib/validations";
  * Production upgrade path: SendGrid + Twilio via BullMQ (PRD §4.3).
  */
 async function _handlePOST(req: NextRequest) {
+  const limited = checkWriteRateLimit(req, "reminders-write");
+  if (limited) return limited;
+
   const session = await requireWriteSession();
   const body = await req.json();
   const { eventId, channel } = parseBody(sendReminderSchema, body);

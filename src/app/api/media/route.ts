@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { requireSession, requireWriteSession } from "@/lib/auth";
 import { ok, created, withErrorHandler } from "@/lib/api";
 import { parseBody, createMediaSchema } from "@/lib/validations";
+import { checkWriteRateLimit } from "@/lib/rate-limit";
+import { checkOrgMember, checkOrgSeries } from "@/lib/scope";
 
 async function _handleGET(req: NextRequest) {
   const session = await requireSession();
@@ -35,10 +37,19 @@ async function _handleGET(req: NextRequest) {
 }
 
 async function _handlePOST(req: NextRequest) {
+  const limited = checkWriteRateLimit(req, "media-write");
+  if (limited) return limited;
+
   const session = await requireWriteSession();
   const body = await req.json();
-  const { title, description, type, url, duration, speakerId, seriesId } = parseBody(createMediaSchema, body);
+  const { title, description, type, url, duration, speakerId, seriesId, date: mediaDate } = parseBody(createMediaSchema, body);
   if (!title) return ok({ error: "Title is required" }, { status: 400 });
+
+  // Security: speaker and series must belong to this org (PRD §7.2)
+  const invalidSpeaker = await checkOrgMember(session.orgId, speakerId);
+  if (invalidSpeaker) return invalidSpeaker;
+  const invalidSeries = await checkOrgSeries(session.orgId, seriesId);
+  if (invalidSeries) return invalidSeries;
 
   const media = await db.mediaItem.create({
     data: {
@@ -48,7 +59,9 @@ async function _handlePOST(req: NextRequest) {
       duration: duration || null,
       speakerId: speakerId || null,
       seriesId: seriesId || null,
-      date: new Date(),
+      // Noon-UTC convention (same as portal submissions): the picked calendar
+      // date stays the same in every display timezone.
+      date: mediaDate ? new Date(`${mediaDate}T12:00:00.000Z`) : new Date(),
       status: "published",
     },
   });

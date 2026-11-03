@@ -44,6 +44,23 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     "no-useless-escape": "off",
   },
 }, {
+  // Vendored registry sources (uiarc "arc" + beui "motion" pickers) stay
+  // byte-identical to upstream so registry updates re-apply cleanly. Relax the
+  // react-hooks compiler rules for those paths only; app code keeps them all.
+  files: [
+    "src/components/motion/**",
+    "src/components/arc/**",
+    "src/lib/ease.ts",
+    "src/lib/focusable.ts",
+    "src/lib/hooks/use-hover-capable.ts",
+  ],
+  rules: {
+    "react-hooks/refs": "off",
+    "react-hooks/immutability": "off",
+    "react-hooks/set-state-in-effect": "off",
+    "react-hooks/preserve-manual-memoization": "off",
+  },
+}, {
   ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills"]
 }];
 

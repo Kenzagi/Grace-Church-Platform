@@ -4,6 +4,8 @@ import { requireSession, requireWriteSession } from "@/lib/auth";
 import { ok, created, withErrorHandler } from "@/lib/api";
 import { writeAudit } from "@/lib/audit";
 import { parseBody, createHouseholdSchema } from "@/lib/validations";
+import { checkWriteRateLimit } from "@/lib/rate-limit";
+import { checkOrgMember } from "@/lib/scope";
 
 async function _handleGET(req: NextRequest) {
   const session = await requireSession();
@@ -23,10 +25,17 @@ async function _handleGET(req: NextRequest) {
 }
 
 async function _handlePOST(req: NextRequest) {
+  const limited = checkWriteRateLimit(req, "households-write");
+  if (limited) return limited;
+
   const session = await requireWriteSession();
   const body = await req.json();
   const { name, address, headMemberId } = parseBody(createHouseholdSchema, body);
   if (!name) return ok({ error: "Name required" }, { status: 400 });
+
+  // Security: head of household must belong to this org (PRD §7.2)
+  const invalidHead = await checkOrgMember(session.orgId, headMemberId);
+  if (invalidHead) return invalidHead;
   const household = await db.household.create({
     data: {
       orgId: session.orgId,

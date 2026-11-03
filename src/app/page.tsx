@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/AppShell";
 import { LoginSection } from "@/components/sections/LoginSection";
 import { DashboardSection } from "@/components/sections/DashboardSection";
+import { GroupsSection } from "@/components/sections/GroupsSection";
 import { MembersSection } from "@/components/sections/MembersSection";
 import { MediaSection, SubmissionsSection } from "@/components/sections/MediaSubmissionsSection";
 import { EventsSection, AttendanceSection } from "@/components/sections/EventsAttendanceSection";
@@ -17,14 +18,14 @@ import type { SectionId } from "@/lib/types";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Icon } from "@/components/Icon";
 import { Button } from "@/components/ui/button";
-import { Church, RefreshCw, ServerOff, Loader2 } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { Church, RefreshCw, ServerOff, Loader2 } from "@/components/icons";
+import { AnimatePresence, motion } from "motion/react";
 
 const SECTIONS: Record<SectionId, React.ComponentType<{ onNavigate?: (id: SectionId) => void }>> = {
   dashboard: (p) => <DashboardSection onNavigate={p.onNavigate!} />,
   members: () => <MembersSection />,
   households: () => <HouseholdsSection />,
-  groups: () => <MembersSection />,
+  groups: () => <GroupsSection />,
   events: () => <EventsSection />,
   attendance: () => <AttendanceSection />,
   media: () => <MediaSection />,
@@ -66,7 +67,7 @@ export default function Page() {
       <div className="min-h-screen flex items-center justify-center bg-surface-alt">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-sm bg-primary text-primary-foreground flex items-center justify-center">
-            <Icon as={Church} boundingBox={false} size={20} />
+            <Icon as={Church} boundingBox={false} size={22} />
           </div>
           <div className="flex items-center gap-3 text-muted-foreground">
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -91,7 +92,7 @@ export default function Page() {
             Click retry to continue.
           </p>
           <Button onClick={refresh} className="w-full h-10">
-            <Icon as={RefreshCw} boundingBox={false} size={16} />
+            <Icon as={RefreshCw} boundingBox={false} size={18} />
             Retry connection
           </Button>
           <p className="text-caption mt-4 text-xs">

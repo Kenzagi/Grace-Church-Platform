@@ -3,12 +3,13 @@ import { db } from "@/lib/db";
 import { requireWriteSession } from "@/lib/auth";
 import { ok, badRequest, notFound, withErrorHandler } from "@/lib/api";
 import { writeAudit } from "@/lib/audit";
-import sharp from "sharp";
+import { checkWriteRateLimit } from "@/lib/rate-limit";
 
 /**
  * Member photo upload endpoint.
  * Accepts multipart/form-data with a single "photo" file field.
- * Resizes to 400x400 (square crop), stores in /public/uploads/members/,
+ * Resizes to 400x400 (square crop) with sharp when available, stores as a
+ * base64 data URL (works on Vercel's read-only filesystem — no /public writes),
  * and updates the Member.photoUrl field.
  *
  * Validation:
@@ -20,9 +21,32 @@ const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/g
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 const PHOTO_SIZE = 400; // 400x400 square
 
+/**
+ * sharp is loaded lazily: if the native binary is missing or broken in a
+ * deployment target, the route still works (the image is stored un-resized)
+ * instead of the whole module crashing with a 500 on import.
+ */
+async function processImage(buffer: Buffer): Promise<{ buffer: Buffer; resized: boolean }> {
+  try {
+    const sharpModule = await import("sharp");
+    const sharp = sharpModule.default ?? sharpModule;
+    const out = await sharp(buffer)
+      .resize(PHOTO_SIZE, PHOTO_SIZE, { fit: "cover", position: "center" })
+      .jpeg({ quality: 80 })
+      .toBuffer();
+    return { buffer: out, resized: true };
+  } catch (err) {
+    console.error("[photo] sharp unavailable, storing original image:", err instanceof Error ? err.message : err);
+    return { buffer, resized: false };
+  }
+}
+
 type Params = { params: Promise<{ id: string }> };
 
 async function _handlePOST(req: NextRequest, { params }: Params) {
+  const limited = checkWriteRateLimit(req, "photo-upload", 20, 60 * 1000);
+  if (limited) return limited;
+
   const session = await requireWriteSession();
   const { id } = await params;
 
@@ -47,22 +71,13 @@ async function _handlePOST(req: NextRequest, { params }: Params) {
   // Read file buffer
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  // Resize to a square 400x400 crop using sharp
-  let processedBuffer: Buffer;
-  try {
-    processedBuffer = await sharp(buffer)
-      .resize(PHOTO_SIZE, PHOTO_SIZE, {
-        fit: "cover",
-        position: "center",
-      })
-      .jpeg({ quality: 80 })
-      .toBuffer();
-  } catch {
-    return badRequest("Could not process the image. Please ensure it's a valid image file.");
-  }
+  // Resize to a square 400x400 crop using sharp (falls back gracefully)
+  const { buffer: processedBuffer, resized } = await processImage(buffer);
 
-  // Store as base64 data URL (works on Vercel read-only filesystem)
-  const photoUrl = `data:image/jpeg;base64,${processedBuffer.toString("base64")}`;
+  // Store as base64 data URL (works on Vercel read-only filesystem).
+  // When sharp resized, output is JPEG; otherwise keep the original MIME type.
+  const mime = resized ? "image/jpeg" : (ALLOWED_TYPES.has(file.type) ? file.type : "image/jpeg");
+  const photoUrl = `data:${mime};base64,${processedBuffer.toString("base64")}`;
 
   await db.member.update({
     where: { id },

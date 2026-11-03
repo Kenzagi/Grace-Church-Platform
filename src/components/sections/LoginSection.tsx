@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Church, Loader2, Lock, Mail, AlertCircle } from "lucide-react";
+import { Church, Loader2, Lock, Mail, AlertCircle } from "@/components/icons";
 
 export function LoginSection({
   onLogin,
@@ -32,11 +32,10 @@ export function LoginSection({
       <header className="h-16 border-b border-border bg-surface flex items-center px-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-sm bg-primary text-primary-foreground flex items-center justify-center">
-            <Icon as={Church} boundingBox={false} size={16} />
+            <Icon as={Church} boundingBox={false} size={18} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-primary">Grace Community Church</p>
-            <p className="text-[11px] text-muted-foreground">Member Management Platform</p>
+            <p className="text-sm font-medium text-primary">Grace Community Church</p>
           </div>
         </div>
       </header>
@@ -44,9 +43,6 @@ export function LoginSection({
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
           <div className="hidden lg:block">
-            <h1 className="text-4xl font-semibold tracking-tight text-primary leading-tight">
-              One platform for your<br />whole congregation.
-            </h1>
             <p className="text-base text-muted-foreground mt-6 max-w-md leading-relaxed">
               Member records, households, ministry groups, event calendar, attendance
               tracking, sermon archive, and event reminders — all in one audited system
@@ -60,7 +56,7 @@ export function LoginSection({
                 "Submission review queue for member media",
               ].map((f) => (
                 <li key={f} className="flex items-center gap-3 text-sm text-foreground">
-                  <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground inline-flex items-center justify-center text-[11px]">
+                  <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground inline-flex items-center justify-center text-xs">
                     ✓
                   </span>
                   {f}
@@ -71,13 +67,12 @@ export function LoginSection({
 
           <div className="bg-surface border border-border rounded-md p-8 shadow-sm">
             <h2 className="text-title text-primary">Sign in to your account</h2>
-            <p className="text-caption mt-1">Use your administrator credentials to continue.</p>
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="login-email">Email address</Label>
                 <div className="relative">
-                  <Icon as={Mail} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" boundingBox={false} size={16} />
+                  <Icon as={Mail} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" boundingBox={false} size={18} />
                   <Input
                     id="login-email"
                     type="email"
@@ -94,7 +89,7 @@ export function LoginSection({
               <div className="space-y-2">
                 <Label htmlFor="login-password">Password</Label>
                 <div className="relative">
-                  <Icon as={Lock} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" boundingBox={false} size={16} />
+                  <Icon as={Lock} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" boundingBox={false} size={18} />
                   <Input
                     id="login-password"
                     type="password"
@@ -130,6 +125,12 @@ export function LoginSection({
               <p>Email: <code className="font-mono">admin@grace.community</code></p>
               <p>Password: <code className="font-mono">grace2026</code></p>
             </div>
+
+            <p className="mt-5 text-center text-sm">
+              <a href="/portal" className="text-primary hover:underline font-medium">
+                Are you a member? Submit or track media here →
+              </a>
+            </p>
           </div>
         </div>
       </main>

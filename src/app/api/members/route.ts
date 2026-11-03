@@ -4,6 +4,8 @@ import { requireSession, requireWriteSession } from "@/lib/auth";
 import { ok, created, badRequest, serverError, withErrorHandler } from "@/lib/api";
 import { writeAudit } from "@/lib/audit";
 import { parseBody, createMemberSchema } from "@/lib/validations";
+import { checkWriteRateLimit } from "@/lib/rate-limit";
+import { findInvalidGroupIds, checkOrgHousehold } from "@/lib/scope";
 
 function csvEscape(v: unknown): string {
   if (v == null) return "";
@@ -80,6 +82,9 @@ async function _handleGET(req: NextRequest) {
 }
 
 async function _handlePOST(req: NextRequest) {
+  const limited = checkWriteRateLimit(req, "members-write");
+  if (limited) return limited;
+
   const session = await requireWriteSession();
   const body = await req.json();
   const { firstName, lastName, email, phone, address, gender, maritalStatus, status, dateOfBirth, householdId, groupIds } = parseBody(createMemberSchema, body);
@@ -89,12 +94,21 @@ async function _handlePOST(req: NextRequest) {
     if (existing) return badRequest("A member with this email already exists");
   }
 
+  // Security: every referenced entity must belong to this org (PRD §7.2)
+  const invalidHousehold = await checkOrgHousehold(session.orgId, householdId);
+  if (invalidHousehold) return invalidHousehold;
+  if (groupIds?.length) {
+    const invalidGroups = await findInvalidGroupIds(session.orgId, groupIds);
+    if (invalidGroups.length) return badRequest("One or more selected groups do not exist in your organization");
+  }
+
   const member = await db.member.create({
     data: {
       orgId: session.orgId,
       firstName, lastName,
       email: email ?? null, phone: phone ?? null, address: address ?? null,
-      gender: gender ?? null, maritalStatus: maritalStatus ?? null,
+      gender,
+      maritalStatus,
       status,
       dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
       householdId: householdId ?? null,

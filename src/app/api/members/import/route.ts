@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { requireWriteSession } from "@/lib/auth";
 import { ok, badRequest, withErrorHandler } from "@/lib/api";
 import { writeAudit } from "@/lib/audit";
+import { parseBody, importRowsSchema } from "@/lib/validations";
+import { checkWriteRateLimit } from "@/lib/rate-limit";
 
 const VALID_STATUSES = new Set(["active", "visitor", "inactive"]);
 const VALID_GENDERS = new Set(["male", "female", "other"]);
@@ -11,17 +13,12 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // POST a pre-validated batch of member rows
 async function _handlePOST(req: NextRequest) {
+  const limited = checkWriteRateLimit(req, "members-import", 10, 60 * 1000);
+  if (limited) return limited;
+
   const session = await requireWriteSession();
   const body = await req.json();
-  const { rows, duplicateAction = "update" } = body as {
-    rows: Record<string, string>[];
-    duplicateAction?: "update" | "skip";
-  };
-
-  if (!Array.isArray(rows) || rows.length === 0)
-    return badRequest("No rows to import");
-  if (rows.length > 1000)
-    return badRequest("Maximum 1000 rows per import");
+  const { rows, duplicateAction } = parseBody(importRowsSchema, body);
 
   let created = 0;
   let updated = 0;
@@ -45,6 +42,16 @@ async function _handlePOST(req: NextRequest) {
       const maritalStatus = ((r.maritalStatus || "").trim().toLowerCase()) || null;
       const status = ((r.status || "active").trim().toLowerCase());
       const dateOfBirth = (r.dateOfBirth || "").trim() || null;
+
+      // Required fields per PRD v2.0 §7.1 #5 — gender & marital status must be present
+      if (!gender) {
+        errors.push({ row: i + 1, error: "Missing gender (male/female/other)" });
+        continue;
+      }
+      if (!maritalStatus) {
+        errors.push({ row: i + 1, error: "Missing marital status (single/married/divorced/widowed)" });
+        continue;
+      }
 
       // Validate field values
       if (email && !EMAIL_RE.test(email)) {
@@ -88,15 +95,16 @@ async function _handlePOST(req: NextRequest) {
           skipped++;
           continue;
         }
-        // Update existing — all fields
+        // Update existing — only overwrite fields present in the CSV row,
+        // so a partial row never blanks out existing data
         await db.member.update({
           where: { id: existing.id },
           data: {
             firstName: first,
             lastName: last,
-            email,
-            phone,
-            address,
+            ...(email !== null || "email" in r ? { email } : {}),
+            ...(phone !== null || "phone" in r ? { phone } : {}),
+            ...(address !== null || "address" in r ? { address } : {}),
             gender,
             maritalStatus,
             status,

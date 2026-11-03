@@ -3,7 +3,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Tooltip,
   TooltipContent,
@@ -28,16 +27,15 @@ import {
   X,
   PanelLeftClose,
   PanelLeftOpen,
-  Moon,
   Sun,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+} from "@/components/icons";
+import type { AppIcon } from "@/components/icons";
 import type { SectionId, User } from "@/lib/types";
 
 interface NavItem {
   id: SectionId;
   label: string;
-  icon: LucideIcon;
+  icon: AppIcon;
   group: "main" | "ministry" | "ops";
 }
 
@@ -183,14 +181,12 @@ export function AppShell({
             <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
               <Icon as={Search} boundingBox={false} />
               <span className="text-caption">Quick search</span>
-              <kbd className="ml-2 px-2 h-6 inline-flex items-center rounded-sm border border-border bg-surface-alt text-[11px] font-mono">
+              <kbd className="ml-2 px-2 h-6 inline-flex items-center rounded-sm border border-border bg-surface-alt text-xs font-mono">
                 /
               </kbd>
             </div>
-            <div className="w-px h-6 bg-border hidden md:block" />
-            <ThemeToggle />
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">
+            <div className="w-px h-6 bg-border hidden md:block" />            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
                 {user.name
                   .split(" ")
                   .map((n) => n[0])
@@ -268,12 +264,12 @@ function SidebarContent({
         )}
       >
         <div className="w-8 h-8 rounded-sm bg-primary text-primary-foreground flex items-center justify-center shrink-0">
-          <Icon as={Church} boundingBox={false} size={16} />
+          <Icon as={Church} boundingBox={false} size={20} />
         </div>
         {!collapsed && (
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-primary truncate">Grace Community</p>
-            <p className="text-[11px] text-muted-foreground truncate">Member Platform</p>
+            <p className="text-sm font-medium text-primary truncate">Grace Community</p>
+            <p className="text-xs text-muted-foreground truncate">Member Platform</p>
           </div>
         )}
       </div>
@@ -283,7 +279,7 @@ function SidebarContent({
         {grouped.map(({ group, items }) => (
           <div key={group} className={cn("mb-6", collapsed && "mb-4")}>
             {!collapsed && (
-              <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              <p className="px-3 mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {GROUP_LABELS[group]}
               </p>
             )}
@@ -307,12 +303,12 @@ function SidebarContent({
                     aria-current={isActive ? "page" : undefined}
                     aria-label={item.label}
                   >
-                    <Icon as={item.icon} boundingBox={false} />
+                    <Icon as={item.icon} boundingBox={false} size={14} />
                     {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
                     {!collapsed && item.id === "submissions" && pendingBadge ? (
                       <span
                         className={cn(
-                          "min-w-5 h-5 px-1.5 inline-flex items-center justify-center rounded-full text-[11px] font-semibold tabular-nums",
+                          "min-w-5 h-5 px-1.5 inline-flex items-center justify-center rounded-full text-xs font-medium tabular-nums",
                           isActive
                             ? "bg-primary-foreground text-primary"
                             : "bg-primary text-primary-foreground"
@@ -373,13 +369,13 @@ function SidebarContent({
       {/* User footer */}
       <div className="border-t border-sidebar-border p-3 shrink-0">
         <div className={cn("flex items-center gap-3 py-2", collapsed && "justify-center")}>
-          <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold shrink-0">
+          <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium shrink-0">
             {initials}
           </div>
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-primary truncate">{user.name}</p>
-              <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             </div>
           )}
         </div>

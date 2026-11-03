@@ -18,7 +18,7 @@ import {
   Clock,
   ArrowRight,
   CheckCircle2,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   AreaChart,
   Area,
@@ -67,9 +67,9 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
 
   if (loading) return (
     <div className="space-y-8">
-      <PageHeader title="Dashboard" description="Real-time overview of your congregation, ministry activity, and content pipeline." />
+      <PageHeader title="Dashboard" />
       <StatCardsSkeleton />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2"><ChartSkeleton /></div>
         <ChartSkeleton />
       </div>
@@ -90,7 +90,6 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
     <div>
       <PageHeader
         title="Dashboard"
-        description="Real-time overview of your congregation, ministry activity, and content pipeline."
       />
 
       {/* Stat grid */}
@@ -122,7 +121,7 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
       </div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
         {/* Attendance trend */}
         <SectionCard className="lg:col-span-2 p-6">
           <div className="flex items-center justify-between mb-6">
@@ -134,7 +133,7 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
               onClick={() => onNavigate("attendance")}
               className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1"
             >
-              View all <Icon as={ArrowRight} boundingBox={false} size={14} />
+              View all <Icon as={ArrowRight} boundingBox={false} size={16} />
             </button>
           </div>
           <div className="h-64">
@@ -147,13 +146,13 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={c.grid} vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 12, fill: c.tick }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 12, fill: c.tick }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 14, fill: c.tick }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 14, fill: c.tick }} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={{
                     borderRadius: 8,
                     border: `1px solid ${c.tooltipBorder}`,
-                    fontSize: 12,
+                    fontSize: 14,
                     boxShadow: c.shadow,
                     backgroundColor: c.tooltipBg,
                     color: c.tooltipText,
@@ -192,7 +191,7 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ borderRadius: 8, border: `1px solid ${c.tooltipBorder}`, fontSize: 12, backgroundColor: c.tooltipBg, color: c.tooltipText }}
+                  contentStyle={{ borderRadius: 8, border: `1px solid ${c.tooltipBorder}`, fontSize: 14, backgroundColor: c.tooltipBg, color: c.tooltipText }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -212,7 +211,7 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
       </div>
 
       {/* Secondary row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
         {/* Group distribution */}
         <SectionCard className="lg:col-span-2 p-6">
           <div className="flex items-center justify-between mb-6">
@@ -224,18 +223,18 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
               onClick={() => onNavigate("groups")}
               className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1"
             >
-              Manage <Icon as={ArrowRight} boundingBox={false} size={14} />
+              Manage <Icon as={ArrowRight} boundingBox={false} size={16} />
             </button>
           </div>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={s.groupDistribution} margin={{ left: -20, right: 8, top: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={c.grid} vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: c.tick }} axisLine={false} tickLine={false} interval={0} angle={-15} textAnchor="end" height={50} />
-                <YAxis tick={{ fontSize: 12, fill: c.tick }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 13, fill: c.tick }} axisLine={false} tickLine={false} interval={0} angle={-15} textAnchor="end" height={50} />
+                <YAxis tick={{ fontSize: 14, fill: c.tick }} axisLine={false} tickLine={false} />
                 <Tooltip
                   cursor={{ fill: c.barCursor }}
-                  contentStyle={{ borderRadius: 8, border: `1px solid ${c.tooltipBorder}`, fontSize: 12, backgroundColor: c.tooltipBg, color: c.tooltipText }}
+                  contentStyle={{ borderRadius: 8, border: `1px solid ${c.tooltipBorder}`, fontSize: 14, backgroundColor: c.tooltipBg, color: c.tooltipText }}
                 />
                 <Bar dataKey="value" fill={c.stroke} radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -251,7 +250,7 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
               onClick={() => onNavigate("events")}
               className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1"
             >
-              Calendar <Icon as={ArrowRight} boundingBox={false} size={14} />
+              Calendar <Icon as={ArrowRight} boundingBox={false} size={16} />
             </button>
           </div>
           {s.upcoming.length === 0 ? (
@@ -261,10 +260,10 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
               {s.upcoming.map((e) => (
                 <li key={e.id} className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-sm bg-surface-alt flex flex-col items-center justify-center shrink-0">
-                    <span className="text-[10px] uppercase text-muted-foreground leading-none">
+                    <span className="text-xs uppercase text-muted-foreground leading-none">
                       {new Date(e.startTime).toLocaleDateString("en-GB", { month: "short" })}
                     </span>
-                    <span className="text-sm font-semibold text-primary leading-none mt-0.5">
+                    <span className="text-sm font-medium text-primary leading-none mt-0.5">
                       {new Date(e.startTime).getDate()}
                     </span>
                   </div>
@@ -283,7 +282,7 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
       </div>
 
       {/* Activity + volunteer capacity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Recent activity */}
         <SectionCard className="lg:col-span-2 p-6">
           <div className="flex items-center justify-between mb-6">
@@ -295,14 +294,14 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
               onClick={() => onNavigate("audit")}
               className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1"
             >
-              Audit log <Icon as={ArrowRight} boundingBox={false} size={14} />
+              Audit log <Icon as={ArrowRight} boundingBox={false} size={16} />
             </button>
           </div>
           <ul className="divide-y divide-border">
             {s.recentActivity.map((a) => (
               <li key={a.id} className="py-3 flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-surface-alt flex items-center justify-center shrink-0">
-                  <Icon as={activityIcon(a.action)} boundingBox={false} size={14} className="text-muted-foreground" />
+                  <Icon as={activityIcon(a.action)} boundingBox={false} size={16} className="text-muted-foreground" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-foreground">
@@ -360,7 +359,7 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
             onClick={() => onNavigate("volunteers")}
             className="w-full mt-6 h-9 rounded-sm border border-border text-sm font-medium text-primary hover:bg-surface-alt inline-flex items-center justify-center gap-2"
           >
-            <Icon as={HandHeart} boundingBox={false} size={14} />
+            <Icon as={HandHeart} boundingBox={false} size={16} />
             Manage volunteers
           </button>
         </SectionCard>
@@ -369,8 +368,8 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
   );
 }
 
-import type { LucideIcon } from "lucide-react";
-function activityIcon(action: string): LucideIcon {
+import type { AppIcon } from "@/components/icons";
+function activityIcon(action: string): AppIcon {
   if (action.includes("login")) return CheckCircle2;
   if (action.includes("create")) return TrendingUp;
   if (action.includes("reminder")) return Clock;

@@ -4,6 +4,8 @@ import { requireSession, requireWriteSession } from "@/lib/auth";
 import { ok, badRequest, notFound, withErrorHandler } from "@/lib/api";
 import { writeAudit } from "@/lib/audit";
 import { parseBody, assignVolunteerSchema } from "@/lib/validations";
+import { checkWriteRateLimit } from "@/lib/rate-limit";
+import { checkOrgMember } from "@/lib/scope";
 
 async function _handleGET(req: NextRequest) {
   const session = await requireSession();
@@ -26,9 +28,12 @@ async function _handleGET(req: NextRequest) {
 }
 
 async function _handlePOST(req: NextRequest) {
+  const limited = checkWriteRateLimit(req, "volunteers-write");
+  if (limited) return limited;
+
   const session = await requireWriteSession();
-  const { eventId, roleId, memberId, status, note } = await req.json();
-  if (!eventId || !roleId || !memberId) return badRequest("eventId, roleId, memberId required");
+  const body = await req.json();
+  const { eventId, roleId, memberId, status, note } = parseBody(assignVolunteerSchema, body);
 
   // Check capacity — verify role belongs to this org
   const role = await db.volunteerRole.findFirst({ where: { id: roleId, orgId: session.orgId } });
@@ -37,6 +42,10 @@ async function _handlePOST(req: NextRequest) {
   // Verify the event belongs to this org
   const event = await db.event.findFirst({ where: { id: eventId, orgId: session.orgId } });
   if (!event) return notFound("Event not found");
+
+  // Security: the assigned member must belong to this org (PRD §7.2)
+  const invalidMember = await checkOrgMember(session.orgId, memberId);
+  if (invalidMember) return invalidMember;
 
   const existing = await db.volunteerAssignment.count({ where: { eventId, roleId } });
   const alreadyAssigned = await db.volunteerAssignment.findUnique({

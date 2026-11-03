@@ -88,6 +88,7 @@ export interface SermonSeries {
   id: string;
   name: string;
   description: string | null;
+  _count?: { media: number };
 }
 
 export interface EventItem {
@@ -110,8 +111,23 @@ export interface Submission {
   note: string | null;
   createdAt: string;
   reviewedAt: string | null;
-  member: { id: string; firstName: string; lastName: string; email: string | null };
-  mediaItem: { id: string; title: string; description: string | null; type: string; url: string | null; duration: number | null };
+  member: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    household?: { id: string; name: string } | null;
+  };
+  mediaItem: {
+    id: string;
+    title: string;
+    description: string | null;
+    type: string;
+    url: string | null;
+    duration: number | null;
+    date?: string;
+    series?: { id: string; name: string } | null;
+  };
   reviewer?: { id: string; name: string } | null;
 }
 
@@ -136,6 +152,8 @@ export interface VolunteerRole {
   id: string;
   name: string;
   capacity: number;
+  /** Per-event override (EventVolunteerNeed) — null when the default applies. */
+  capacityOverride?: number | null;
   groupId: string | null;
   group?: { id: string; name: string } | null;
   assignments?: { id: string; status: string; member: { id: string; firstName: string; lastName: string; phone: string | null } }[];

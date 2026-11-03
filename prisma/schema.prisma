@@ -87,8 +87,8 @@ model Member {
   address       String?
   photoUrl      String?
   dateOfBirth   DateTime?
-  gender        String?  // male | female | other
-  maritalStatus String?  // single | married | divorced | widowed
+  gender        String   // male | female | other — required per PRD v2.0 §7.1 #5
+  maritalStatus String   // single | married | divorced | widowed — required per PRD v2.0 §7.1 #5
   status        String   @default("active") // active | inactive | visitor
   notes         String?
   joinedAt      DateTime @default(now())
@@ -269,6 +269,7 @@ model Event {
   attendance    Attendance[]
   eventTags     EventTag[]
   volunteerAssignments VolunteerAssignment[]
+  volunteerNeeds       EventVolunteerNeed[]
 
   @@index([orgId])
   @@index([startTime])
@@ -322,6 +323,7 @@ model VolunteerRole {
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   group        Group?       @relation(fields: [groupId], references: [id], onDelete: SetNull)
   assignments  VolunteerAssignment[]
+  needs        EventVolunteerNeed[]
 
   @@index([orgId])
 }
@@ -341,4 +343,20 @@ model VolunteerAssignment {
 
   @@unique([eventId, roleId, memberId])
   @@index([eventId])
+}
+
+/// Volunteers needed for ONE event — raises or lowers a role's capacity for
+/// that event only. A row exists only when the value differs from the role's
+/// default (equality deletes the row, so the role stays the single truth).
+model EventVolunteerNeed {
+  id       String @id @default(cuid())
+  eventId  String
+  roleId   String
+  capacity Int
+
+  event Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  role  VolunteerRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, roleId])
+  @@index([roleId])
 }

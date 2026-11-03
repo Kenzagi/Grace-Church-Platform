@@ -14,8 +14,19 @@ async function _handleGET(req: NextRequest) {
   const submissions = await db.submission.findMany({
     where,
     include: {
-      member: { select: { id: true, firstName: true, lastName: true, email: true } },
-      mediaItem: { select: { id: true, title: true, description: true, type: true, url: true, duration: true } },
+      member: {
+        select: {
+          id: true, firstName: true, lastName: true, email: true,
+          household: { select: { id: true, name: true } },
+        },
+      },
+      mediaItem: {
+        select: {
+          id: true, title: true, description: true, type: true, url: true,
+          duration: true, date: true,
+          series: { select: { id: true, name: true } },
+        },
+      },
       reviewer: { select: { id: true, name: true } },
     },
     orderBy: { createdAt: "desc" },

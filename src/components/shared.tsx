@@ -3,9 +3,9 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
-import type { LucideIcon } from "lucide-react";
+import type { AppIcon } from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, Inbox, AlertCircle, RefreshCw } from "lucide-react";
+import { Loader2, Inbox, AlertCircle, RefreshCw } from "@/components/icons";
 
 /** PageHeader — consistent title + description + actions across every section. */
 export function PageHeader({
@@ -20,7 +20,7 @@ export function PageHeader({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-tight text-primary">{title}</h1>
+        <h1 className="text-base leading-5 font-medium tracking-tight text-primary">{title}</h1>
         {description && <p className="text-caption mt-2 max-w-2xl">{description}</p>}
       </div>
       {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
@@ -58,7 +58,7 @@ export function StatCard({
 }: {
   label: string;
   value: string | number;
-  icon: LucideIcon;
+  icon: AppIcon;
   hint?: string;
   tone?: "default" | "positive" | "warning";
 }) {
@@ -67,7 +67,7 @@ export function StatCard({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-caption font-medium uppercase tracking-wide">{label}</p>
-          <p className="text-3xl font-semibold text-primary mt-3 tabular-nums">{value}</p>
+          <p className="text-2xl font-medium text-primary mt-3 tabular-nums">{value}</p>
           {hint && <p className="text-caption mt-2">{hint}</p>}
         </div>
         <div className="shrink-0 w-12 h-12 rounded-sm bg-surface-alt flex items-center justify-center">
@@ -134,7 +134,7 @@ export function ErrorState({
           onClick={onRetry}
           className="mt-4 inline-flex items-center gap-2 h-9 px-4 rounded-sm bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
         >
-          <Icon as={RefreshCw} boundingBox={false} size={14} />
+          <Icon as={RefreshCw} boundingBox={false} size={16} />
           Retry
         </button>
       )}

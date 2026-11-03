@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireSession, requireWriteSession } from "@/lib/auth";
 import { ok, created, withErrorHandler } from "@/lib/api";
 import { writeAudit } from "@/lib/audit";
+import { checkWriteRateLimit } from "@/lib/rate-limit";
 import { parseBody, createGroupSchema } from "@/lib/validations";
 
 async function _handleGET(req: NextRequest) {
@@ -24,6 +25,9 @@ async function _handleGET(req: NextRequest) {
 }
 
 async function _handlePOST(req: NextRequest) {
+  const limited = checkWriteRateLimit(req, "groups-write");
+  if (limited) return limited;
+
   const session = await requireWriteSession();
   const body = await req.json();
   const { name, description, category } = parseBody(createGroupSchema, body);

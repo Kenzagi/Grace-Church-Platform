@@ -27,8 +27,9 @@ import {
   Users, Plus, Download, Upload, Search, Mail, Phone, MapPin, Calendar,
   X, ChevronRight, Trash2, Pencil, UserPlus, FileText, Check, AlertCircle,
   Camera, Loader2,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+} from "@/components/icons";
+import { DateField, todayKey } from "@/components/forms/pickers";
+import type { AppIcon } from "@/components/icons";
 
 export function MembersSection() {
   const [search, setSearch] = React.useState("");
@@ -72,19 +73,18 @@ export function MembersSection() {
     <div>
       <PageHeader
         title="Members"
-        description="The congregational directory — search, filter, import, and export member records."
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => setShowImport(true)} className="h-9">
-              <Icon as={Upload} boundingBox={false} size={14} />
+              <Icon as={Upload} boundingBox={false} size={16} />
               <span className="hidden sm:inline">Import CSV</span>
             </Button>
             <Button variant="outline" size="sm" onClick={handleExport} className="h-9">
-              <Icon as={Download} boundingBox={false} size={14} />
+              <Icon as={Download} boundingBox={false} size={16} />
               <span className="hidden sm:inline">Export</span>
             </Button>
             <Button size="sm" onClick={() => setShowAdd(true)} className="h-9">
-              <Icon as={UserPlus} boundingBox={false} size={14} />
+              <Icon as={UserPlus} boundingBox={false} size={16} />
               <span className="hidden sm:inline">Add member</span>
             </Button>
           </>
@@ -96,7 +96,7 @@ export function MembersSection() {
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              <Icon as={Search} boundingBox={false} size={16} />
+              <Icon as={Search} boundingBox={false} size={18} />
             </span>
             <input
               value={search}
@@ -142,8 +142,7 @@ export function MembersSection() {
         ) : members.length === 0 ? (
           <EmptyState
             title="No members found"
-            description="Try adjusting your filters or add a new member."
-            action={<Button size="sm" onClick={() => setShowAdd(true)}><Icon as={UserPlus} boundingBox={false} size={14} />Add member</Button>}
+            action={<Button size="sm" onClick={() => setShowAdd(true)}><Icon as={UserPlus} boundingBox={false} size={16} />Add member</Button>}
           />
         ) : (
           <div className="overflow-x-auto scrollbar-thin">
@@ -185,7 +184,7 @@ export function MembersSection() {
                       {m.memberships && m.memberships.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {m.memberships.slice(0, 2).map((mem) => (
-                            <Badge key={mem.id} variant="secondary" className="text-[11px]">{mem.group.name}</Badge>
+                            <Badge key={mem.id} variant="secondary" className="text-xs">{mem.group.name}</Badge>
                           ))}
                           {m.memberships.length > 2 && (
                             <span className="text-caption">+{m.memberships.length - 2}</span>
@@ -202,7 +201,7 @@ export function MembersSection() {
                       {formatDate(m.joinedAt, { day: "2-digit", month: "short", year: "numeric" })}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Icon as={ChevronRight} boundingBox={false} size={16} className="text-muted-foreground" />
+                      <Icon as={ChevronRight} boundingBox={false} size={18} className="text-muted-foreground" />
                     </td>
                   </tr>
                 ))}
@@ -279,8 +278,22 @@ function MemberDetailDialog({ id, onClose, onSaved }: { id: string; onClose: () 
     }
   }
 
-  if (loading) return <Dialog open onOpenChange={onClose}><DialogContent><LoadingSpinner label="Loading member…" /></DialogContent></Dialog>;
-  if (error || !data) return <Dialog open onOpenChange={onClose}><DialogContent><EmptyState title="Couldn't load member" description={error} /></DialogContent></Dialog>;
+  if (loading) return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent>
+        <DialogTitle className="sr-only">Loading member</DialogTitle>
+        <LoadingSpinner label="Loading member…" />
+      </DialogContent>
+    </Dialog>
+  );
+  if (error || !data) return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent>
+        <DialogTitle className="sr-only">Couldn&apos;t load member</DialogTitle>
+        <EmptyState title="Couldn't load member" description={error} />
+      </DialogContent>
+    </Dialog>
+  );
 
   const m = data.member;
 
@@ -316,7 +329,7 @@ function MemberDetailDialog({ id, onClose, onSaved }: { id: string; onClose: () 
           <div className="space-y-6 py-4">
             {/* Contact */}
             <div>
-              <h4 className="text-sm font-semibold text-primary mb-3">Contact</h4>
+              <h4 className="text-sm font-medium text-primary mb-3">Contact</h4>
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <InfoRow icon={Mail} label="Email" value={m.email} />
                 <InfoRow icon={Phone} label="Phone" value={m.phone} />
@@ -328,7 +341,7 @@ function MemberDetailDialog({ id, onClose, onSaved }: { id: string; onClose: () 
             {/* Household */}
             {m.household && (
               <div>
-                <h4 className="text-sm font-semibold text-primary mb-3">Household</h4>
+                <h4 className="text-sm font-medium text-primary mb-3">Household</h4>
                 <div className="rounded-sm border border-border p-4 bg-surface-alt">
                   <p className="font-medium text-primary">{m.household.name}</p>
                   {m.household.members && m.household.members.length > 1 && (
@@ -341,12 +354,12 @@ function MemberDetailDialog({ id, onClose, onSaved }: { id: string; onClose: () 
             {/* Groups */}
             {m.memberships && m.memberships.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-primary mb-3">Groups & Ministries</h4>
+                <h4 className="text-sm font-medium text-primary mb-3">Groups & Ministries</h4>
                 <div className="flex flex-wrap gap-2">
                   {m.memberships.map((mem) => (
                     <div key={mem.id} className="flex items-center gap-2 rounded-sm border border-border px-3 py-1.5">
                       <span className="text-sm text-primary">{mem.group.name}</span>
-                      <span className="text-[11px] text-muted-foreground capitalize">{mem.role}</span>
+                      <span className="text-xs text-muted-foreground capitalize">{mem.role}</span>
                     </div>
                   ))}
                 </div>
@@ -356,7 +369,7 @@ function MemberDetailDialog({ id, onClose, onSaved }: { id: string; onClose: () 
             {/* Tags */}
             {m.memberTags && m.memberTags.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-primary mb-3">Tags</h4>
+                <h4 className="text-sm font-medium text-primary mb-3">Tags</h4>
                 <div className="flex flex-wrap gap-2">
                   {m.memberTags.map((mt) => (
                     <span key={mt.tag.id} className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium" style={{ background: `${mt.tag.color}15`, color: mt.tag.color }}>
@@ -370,14 +383,14 @@ function MemberDetailDialog({ id, onClose, onSaved }: { id: string; onClose: () 
             {/* Attendance history */}
             {m.attendance && m.attendance.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-primary mb-3">Recent attendance</h4>
+                <h4 className="text-sm font-medium text-primary mb-3">Recent attendance</h4>
                 <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
                   {m.attendance.slice(0, 8).map((a) => (
                     <div key={a.id} className="flex items-center justify-between text-sm py-1.5 border-b border-border last:border-0">
                       <span className="text-foreground truncate">{a.event.title}</span>
                       <div className="flex items-center gap-3 shrink-0">
                         <span className="text-caption">{formatDate(a.event.startTime, { day: "2-digit", month: "short" })}</span>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-sm border text-[11px] font-medium capitalize ${statusClass(a.status)}`}>{a.status}</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-sm border text-xs font-medium capitalize ${statusClass(a.status)}`}>{a.status}</span>
                       </div>
                     </div>
                   ))}
@@ -399,12 +412,12 @@ function MemberDetailDialog({ id, onClose, onSaved }: { id: string; onClose: () 
           ) : (
             <>
               <Button variant="ghost" size="sm" onClick={() => setDeleting(true)} className="text-red-600 hover:text-red-700">
-                <Icon as={Trash2} boundingBox={false} size={14} />Delete
+                <Icon as={Trash2} boundingBox={false} size={16} />Delete
               </Button>
               <div className="flex gap-2">
                 {!editing && (
                   <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-                    <Icon as={Pencil} boundingBox={false} size={14} />Edit
+                    <Icon as={Pencil} boundingBox={false} size={16} />Edit
                   </Button>
                 )}
                 <Button size="sm" onClick={onClose}>Close</Button>
@@ -417,12 +430,12 @@ function MemberDetailDialog({ id, onClose, onSaved }: { id: string; onClose: () 
   );
 }
 
-function InfoRow({ icon: Ic, label, value }: { icon: LucideIcon; label: string; value?: string | null }) {
+function InfoRow({ icon: Ic, label, value }: { icon: AppIcon; label: string; value?: string | null }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="text-muted-foreground mt-0.5"><Icon as={Ic} boundingBox={false} size={16} /></span>
+      <span className="text-muted-foreground mt-0.5"><Icon as={Ic} boundingBox={false} size={18} /></span>
       <div className="min-w-0">
-        <p className="text-[11px] uppercase text-muted-foreground font-medium">{label}</p>
+        <p className="text-xs uppercase text-muted-foreground font-medium">{label}</p>
         <p className="text-sm text-foreground break-words">{value || "—"}</p>
       </div>
     </div>
@@ -497,11 +510,11 @@ function PhotoUpload({
 
   return (
     <div className="relative group">
-      <div className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center bg-primary text-primary-foreground text-lg font-semibold shrink-0">
+      <div className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center bg-primary text-primary-foreground text-lg font-medium shrink-0">
         {previewUrl && !uploading ? (
           <img src={previewUrl} alt={`${firstName} ${lastName}`} className="w-full h-full object-cover" />
         ) : uploading ? (
-          <Icon as={Loader2} boundingBox={false} size={20} className="animate-spin" />
+          <Icon as={Loader2} boundingBox={false} size={22} className="animate-spin" />
         ) : (
           <span>{initials(firstName, lastName)}</span>
         )}
@@ -514,7 +527,7 @@ function PhotoUpload({
         aria-label="Change photo"
         disabled={uploading}
       >
-        <Icon as={Camera} boundingBox={false} size={12} />
+        <Icon as={Camera} boundingBox={false} size={14} />
       </button>
       {/* Dropdown menu */}
       {showMenu && !uploading && (
@@ -525,7 +538,7 @@ function PhotoUpload({
               onClick={() => fileRef.current?.click()}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-surface-alt text-left"
             >
-              <Icon as={Upload} boundingBox={false} size={14} />
+              <Icon as={Upload} boundingBox={false} size={16} />
               {previewUrl ? "Change photo" : "Upload photo"}
             </button>
             {previewUrl && (
@@ -533,11 +546,11 @@ function PhotoUpload({
                 onClick={handleRemove}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-surface-alt text-left"
               >
-                <Icon as={Trash2} boundingBox={false} size={14} />
+                <Icon as={Trash2} boundingBox={false} size={16} />
                 Remove photo
               </button>
             )}
-            <div className="px-3 py-1.5 border-t border-border text-[11px] text-muted-foreground">
+            <div className="px-3 py-1.5 border-t border-border text-xs text-muted-foreground">
               JPEG, PNG, WebP · max 5 MB
             </div>
           </div>
@@ -570,13 +583,17 @@ function MemberEditForm({ member, onSaved, onCancel }: { member: Member; onSaved
     groupIds: (member.memberships || []).map((m) => m.group.id),
   });
   const [saving, setSaving] = React.useState(false);
+  const [showInlineGroup, setShowInlineGroup] = React.useState(false);
   const { data: hhData } = useFetch<{ households: Household[] }>(`/api/households`);
-  const { data: grpData } = useFetch<{ groups: Group[] }>(`/api/groups`);
+  const { data: grpData, refetch: refetchGroups } = useFetch<{ groups: Group[] }>(`/api/groups`);
   const households = hhData?.households || [];
   const groups = grpData?.groups || [];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Client-side enforcement mirrors the Zod validation on the server (PRD §7.1 #5)
+    if (!form.gender) { toast.error("Gender is required"); return; }
+    if (!form.maritalStatus) { toast.error("Marital status is required"); return; }
     setSaving(true);
     const payload = {
       ...form,
@@ -605,10 +622,14 @@ function MemberEditForm({ member, onSaved, onCancel }: { member: Member; onSaved
         <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
         <Field label="Phone"><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
         <Field label="Address" className="col-span-2"><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></Field>
-        <Field label="Date of birth" required><Input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} required /></Field>
+        <div>
+          <DateField label="Date of birth" value={form.dateOfBirth} onChange={(dateOfBirth) => setForm({ ...form, dateOfBirth })} maxDate={todayKey()} />
+        </div>
         <Field label="Gender" required>
           <Select value={form.gender} onValueChange={(v) => setForm({ ...form, gender: v })}>
-            <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder={form.gender ? undefined : "Select gender *"} />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="male">Male</SelectItem>
               <SelectItem value="female">Female</SelectItem>
@@ -618,7 +639,9 @@ function MemberEditForm({ member, onSaved, onCancel }: { member: Member; onSaved
         </Field>
         <Field label="Marital status" required>
           <Select value={form.maritalStatus} onValueChange={(v) => setForm({ ...form, maritalStatus: v })}>
-            <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder={form.maritalStatus ? undefined : "Select status *"} />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="single">Single</SelectItem>
               <SelectItem value="married">Married</SelectItem>
@@ -638,10 +661,13 @@ function MemberEditForm({ member, onSaved, onCancel }: { member: Member; onSaved
           </Select>
         </Field>
         <Field label="Household">
-          <Select value={form.householdId} onValueChange={(v) => setForm({ ...form, householdId: v })}>
-            <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+          <Select value={form.householdId || "__none__"} onValueChange={(v) => setForm({ ...form, householdId: v })}>
+            <SelectTrigger>
+              <SelectValue placeholder={households.length === 0 ? "No households yet" : "None"} />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="__none__">No household</SelectItem>
+              {households.length === 0 && <SelectItem value="_empty" disabled className="text-muted-foreground italic">No households created yet</SelectItem>}
               {households.map((h) => <SelectItem key={h.id} value={h.id}>{h.name}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -661,6 +687,27 @@ function MemberEditForm({ member, onSaved, onCancel }: { member: Member; onSaved
                 <span className="text-sm">{g.name}</span>
               </label>
             ))}
+          </div>
+        )}
+        {!showInlineGroup && (
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mt-2 cursor-pointer"
+            onClick={() => setShowInlineGroup(true)}
+          >
+            <Icon as={Plus} boundingBox={false} size={16} />Create new group
+          </button>
+        )}
+        {showInlineGroup && (
+          <div className="mt-2">
+            <InlineGroupCreate
+              onCreated={(g) => {
+                refetchGroups();
+                setForm((prev) => ({ ...prev, groupIds: [...prev.groupIds, g.id] }));
+                setShowInlineGroup(false);
+              }}
+              onCancel={() => setShowInlineGroup(false)}
+            />
           </div>
         )}
       </Field>
@@ -685,6 +732,9 @@ function MemberFormDialog({ groups: initialGroups, households, onClose, onSaved 
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Client-side enforcement mirrors the Zod validation on the server (PRD §7.1 #5)
+    if (!form.gender) { toast.error("Gender is required"); return; }
+    if (!form.maritalStatus) { toast.error("Marital status is required"); return; }
     setSaving(true);
     // Sanitize empty strings → null so Zod enum + Prisma FK don't reject them
     const payload = {
@@ -717,7 +767,9 @@ function MemberFormDialog({ groups: initialGroups, households, onClose, onSaved 
             <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
             <Field label="Phone"><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
             <Field label="Address" className="col-span-2"><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></Field>
-            <Field label="Date of birth"><Input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} /></Field>
+            <div>
+              <DateField label="Date of birth" value={form.dateOfBirth} onChange={(dateOfBirth) => setForm({ ...form, dateOfBirth })} maxDate={todayKey()} />
+            </div>
             <Field label="Status">
               <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -739,7 +791,9 @@ function MemberFormDialog({ groups: initialGroups, households, onClose, onSaved 
             </Field>
             <Field label="Gender" required>
               <Select value={form.gender} onValueChange={(v) => setForm({ ...form, gender: v })}>
-                <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder={form.gender ? undefined : "Select gender *"} />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
@@ -749,7 +803,9 @@ function MemberFormDialog({ groups: initialGroups, households, onClose, onSaved 
             </Field>
             <Field label="Marital status" required>
               <Select value={form.maritalStatus} onValueChange={(v) => setForm({ ...form, maritalStatus: v })}>
-                <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder={form.maritalStatus ? undefined : "Select status *"} />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="single">Single</SelectItem>
                   <SelectItem value="married">Married</SelectItem>
@@ -759,9 +815,6 @@ function MemberFormDialog({ groups: initialGroups, households, onClose, onSaved 
               </Select>
             </Field>
           </div>
-          <Field label="Date of birth" required>
-            <Input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} required />
-          </Field>
           <Field label="Add to groups">
             {formGroups.length === 0 ? (
               <div className="flex items-center justify-between rounded-sm border border-border p-3 mt-1">
@@ -771,26 +824,42 @@ function MemberFormDialog({ groups: initialGroups, households, onClose, onSaved 
                   className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline cursor-pointer"
                   onClick={() => setShowInlineGroup(true)}
                 >
-                  <Icon as={Plus} boundingBox={false} size={14} />Create group
+                  <Icon as={Plus} boundingBox={false} size={16} />Create group
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2 mt-1">
-                {formGroups.map((g) => (
-                  <label key={g.id} className="flex items-center gap-2 rounded-sm border border-border p-2 cursor-pointer hover:bg-surface-alt transition-colors">
-                    <Checkbox
-                      checked={form.groupIds.includes(g.id)}
-                      onCheckedChange={(c) => setForm({ ...form, groupIds: c ? [...form.groupIds, g.id] : form.groupIds.filter((id) => id !== g.id) })}
-                    />
-                    <span className="text-sm">{g.name}</span>
-                  </label>
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {formGroups.map((g) => (
+                    <label key={g.id} className="flex items-center gap-2 rounded-sm border border-border p-2 cursor-pointer hover:bg-surface-alt transition-colors">
+                      <Checkbox
+                        checked={form.groupIds.includes(g.id)}
+                        onCheckedChange={(c) => setForm({ ...form, groupIds: c ? [...form.groupIds, g.id] : form.groupIds.filter((id) => id !== g.id) })}
+                      />
+                      <span className="text-sm">{g.name}</span>
+                    </label>
+                  ))}
+                </div>
+                {!showInlineGroup && (
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mt-2 cursor-pointer"
+                    onClick={() => setShowInlineGroup(true)}
+                  >
+                    <Icon as={Plus} boundingBox={false} size={16} />Create new group
+                  </button>
+                )}
+              </>
             )}
           </Field>
           {showInlineGroup && (
             <InlineGroupCreate
-              onCreated={(g) => { setFormGroups((prev) => [...prev, g]); setShowInlineGroup(false); }}
+              onCreated={(g) => {
+                // Auto-assign: add to the selectable list and check it immediately
+                setFormGroups((prev) => [...prev, g]);
+                setForm((prev) => ({ ...prev, groupIds: [...prev.groupIds, g.id] }));
+                setShowInlineGroup(false);
+              }}
               onCancel={() => setShowInlineGroup(false)}
             />
           )}
@@ -868,12 +937,12 @@ function ImportWizard({ onClose, onDone }: { onClose: () => void; onDone: () => 
   }
 
   function loadSample() {
-    const sample = `firstName,lastName,email,phone,status
-Grace,Wanjiru,grace.wanjiru@example.com,+254712345678,active
-Peter,Mwangi,peter.mwangi@example.com,+254723456789,active
-Sarah,Ochieng,sarah.ochieng@example.com,+254734567890,visitor
-John,Kamau,john.kamau@example.com,+254745678901,active
-Mary,Achieng,mary.achieng@example.com,+254756789012,active`;
+    const sample = `firstName,lastName,email,phone,gender,maritalStatus,status
+Grace,Wanjiru,grace.wanjiru@example.com,+254712345678,female,married,active
+Peter,Mwangi,peter.mwangi@example.com,+254723456789,male,single,active
+Sarah,Ochieng,sarah.ochieng@example.com,+254734567890,female,single,visitor
+John,Kamau,john.kamau@example.com,+254745678901,male,married,active
+Mary,Achieng,mary.achieng@example.com,+254756789012,female,divorced,active`;
     setRawText(sample);
     parseAndMap(sample);
   }
@@ -939,10 +1008,10 @@ Mary,Achieng,mary.achieng@example.com,+254756789012,active`;
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto scrollbar-thin">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Icon as={Upload} boundingBox={false} size={18} />
+            <Icon as={Upload} boundingBox={false} size={20} />
             Import members from CSV
           </DialogTitle>
-          <DialogDescription>A four-step wizard: upload, map columns, validate, confirm.</DialogDescription>
+          
         </DialogHeader>
 
         {/* Stepper */}
@@ -950,8 +1019,8 @@ Mary,Achieng,mary.achieng@example.com,+254756789012,active`;
           {["Upload", "Map columns", "Validate", "Done"].map((label, i) => (
             <React.Fragment key={label}>
               <div className={`flex items-center gap-2 ${step >= i + 1 ? "text-primary" : "text-muted-foreground"}`}>
-                <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-semibold ${step >= i + 1 ? "bg-primary text-primary-foreground" : "bg-surface-alt"}`}>
-                  {step > i + 1 ? <Icon as={Check} boundingBox={false} size={12} /> : i + 1}
+                <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-medium ${step >= i + 1 ? "bg-primary text-primary-foreground" : "bg-surface-alt"}`}>
+                  {step > i + 1 ? <Icon as={Check} boundingBox={false} size={14} /> : i + 1}
                 </span>
                 <span className="text-sm hidden sm:inline">{label}</span>
               </div>
@@ -982,12 +1051,12 @@ Mary,Achieng,mary.achieng@example.com,+254756789012,active`;
         {/* Step 2: Map columns */}
         {step === 2 && (
           <div className="py-4 space-y-4">
-            <p className="text-caption">Map your CSV columns to member fields. Required: firstName, lastName.</p>
+            <p className="text-caption">Map your CSV columns to member fields. Required: firstName, lastName, gender, maritalStatus.</p>
             <div className="space-y-2">
               {headers.map((h) => (
                 <div key={h} className="flex items-center gap-3 py-2 border-b border-border">
                   <span className="text-sm font-mono text-foreground w-40 truncate">{h}</span>
-                  <Icon as={ChevronRight} boundingBox={false} size={14} className="text-muted-foreground" />
+                  <Icon as={ChevronRight} boundingBox={false} size={16} className="text-muted-foreground" />
                   <Select value={mapping[h] || SKIP} onValueChange={(v) => setMapping({ ...mapping, [h]: v })}>
                     <SelectTrigger className="flex-1"><SelectValue placeholder="Skip this column" /></SelectTrigger>
                     <SelectContent>
@@ -1007,15 +1076,15 @@ Mary,Achieng,mary.achieng@example.com,+254756789012,active`;
             {/* Summary bar */}
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-sm border border-emerald-200 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-800 p-3 text-center">
-                <p className="text-2xl font-semibold text-emerald-700 dark:text-emerald-300">{validationResult.summary.newCount}</p>
+                <p className="text-2xl font-medium text-emerald-700 dark:text-emerald-300">{validationResult.summary.newCount}</p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400">New members</p>
               </div>
               <div className="rounded-sm border border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800 p-3 text-center">
-                <p className="text-2xl font-semibold text-amber-700 dark:text-amber-300">{validationResult.summary.duplicateCount}</p>
+                <p className="text-2xl font-medium text-amber-700 dark:text-amber-300">{validationResult.summary.duplicateCount}</p>
                 <p className="text-xs text-amber-600 dark:text-amber-400">Duplicates found</p>
               </div>
               <div className="rounded-sm border border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800 p-3 text-center">
-                <p className="text-2xl font-semibold text-red-700 dark:text-red-300">{validationResult.summary.errorCount}</p>
+                <p className="text-2xl font-medium text-red-700 dark:text-red-300">{validationResult.summary.errorCount}</p>
                 <p className="text-xs text-red-600 dark:text-red-400">Errors</p>
               </div>
             </div>
@@ -1064,7 +1133,7 @@ Mary,Achieng,mary.achieng@example.com,+254756789012,active`;
                     }>
                       <td className="px-3 py-2 text-muted-foreground tabular-nums">{vr.rowIndex + 1}</td>
                       <td className="px-3 py-2">
-                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-sm text-[11px] font-medium ${
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium ${
                           vr.status === "new"
                             ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
                             : vr.status === "duplicate"
@@ -1103,14 +1172,14 @@ Mary,Achieng,mary.achieng@example.com,+254756789012,active`;
         {step === 4 && result && (
           <div className="py-8 text-center">
             <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4">
-              <Icon as={Check} boundingBox={false} size={24} />
+              <Icon as={Check} boundingBox={false} size={26} />
             </div>
             <h3 className="text-title text-primary">Import complete</h3>
             <div className="grid grid-cols-4 gap-4 max-w-lg mx-auto mt-6">
-              <div><p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">{result.created}</p><p className="text-caption">Created</p></div>
-              <div><p className="text-2xl font-semibold text-amber-600 dark:text-amber-400">{result.updated}</p><p className="text-caption">Updated</p></div>
-              <div><p className="text-2xl font-semibold text-muted-foreground">{result.skipped}</p><p className="text-caption">Skipped</p></div>
-              <div><p className="text-2xl font-semibold text-red-600 dark:text-red-400">{result.errors.length}</p><p className="text-caption">Errors</p></div>
+              <div><p className="text-2xl font-medium text-emerald-600 dark:text-emerald-400">{result.created}</p><p className="text-caption">Created</p></div>
+              <div><p className="text-2xl font-medium text-amber-600 dark:text-amber-400">{result.updated}</p><p className="text-caption">Updated</p></div>
+              <div><p className="text-2xl font-medium text-muted-foreground">{result.skipped}</p><p className="text-caption">Skipped</p></div>
+              <div><p className="text-2xl font-medium text-red-600 dark:text-red-400">{result.errors.length}</p><p className="text-caption">Errors</p></div>
             </div>
             {result.errors.length > 0 && (
               <details className="mt-4 text-left max-w-md mx-auto">
@@ -1225,7 +1294,7 @@ function GroupsManagerDialog({ onClose, onChanged }: { onClose: () => void; onCh
           </div>
         )}
         <DialogFooter>
-          {!showAdd && <Button size="sm" onClick={() => setShowAdd(true)}><Icon as={Plus} boundingBox={false} size={14} />New group</Button>}
+          {!showAdd && <Button size="sm" onClick={() => setShowAdd(true)}><Icon as={Plus} boundingBox={false} size={16} />New group</Button>}
           <Button size="sm" variant="outline" onClick={onClose}>Close</Button>
         </DialogFooter>
       </DialogContent>
@@ -1242,11 +1311,11 @@ function InlineGroupCreate({ onCreated, onCancel }: { onCreated: (g: Group) => v
   async function handleCreate() {
     if (!name.trim()) return;
     setSaving(true);
-    const res = await apiRequest("/api/groups", { method: "POST", body: { name: name.trim(), description: "", category } });
+    const res = await apiRequest<{ group: Group }>("/api/groups", { method: "POST", body: { name: name.trim(), description: "", category } });
     setSaving(false);
-    if (res.ok && res.data) {
+    if (res.ok && res.data?.group) {
       toast.success(`Group "${name.trim()}" created`);
-      onCreated(res.data as Group);
+      onCreated(res.data.group);
     } else {
       toast.error(res.error || "Failed to create group");
     }

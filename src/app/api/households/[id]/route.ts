@@ -4,6 +4,8 @@ import { requireSession, requireWriteSession } from "@/lib/auth";
 import { ok, notFound, withErrorHandler } from "@/lib/api";
 import { writeAudit } from "@/lib/audit";
 import { parseBody, updateHouseholdSchema } from "@/lib/validations";
+import { checkWriteRateLimit } from "@/lib/rate-limit";
+import { checkOrgMember } from "@/lib/scope";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -22,6 +24,9 @@ async function _handleGET(_req: NextRequest, { params }: Params) {
 }
 
 async function _handlePATCH(req: NextRequest, { params }: Params) {
+  const limited = checkWriteRateLimit(req, "households-write");
+  if (limited) return limited;
+
   const session = await requireWriteSession();
   const { id } = await params;
   const body = await req.json();
@@ -29,6 +34,12 @@ async function _handlePATCH(req: NextRequest, { params }: Params) {
   if (!existing) return notFound("Household not found");
 
   const { name, address, headMemberId } = parseBody(updateHouseholdSchema, body);
+
+  // Security: head of household must belong to this org (PRD §7.2)
+  if (headMemberId !== undefined) {
+    const invalidHead = await checkOrgMember(session.orgId, headMemberId);
+    if (invalidHead) return invalidHead;
+  }
   const updated = await db.household.update({
     where: { id },
     data: {

@@ -338,15 +338,17 @@ async function main() {
   const existingRoles = await db.volunteerRole.count();
   if (existingRoles === 0) {
     const rolesData = [
-      { name: "Greeter", capacity: 4 },
-      { name: "Usher", capacity: 6 },
-      { name: "Worship", capacity: 5 },
-      { name: "Children's Worker", capacity: 3 },
-      { name: "Sound Tech", capacity: 2 },
+      { name: "Greeter", capacity: 4, group: "Greeters" },
+      { name: "Usher", capacity: 6, group: "Ushers" },
+      { name: "Worship", capacity: 5, group: "Worship Team" },
+      { name: "Children's Worker", capacity: 3, group: "Children's Ministry" },
+      { name: "Sound Tech", capacity: 2, group: "Youth Fellowship" },
     ];
-    for (let i = 0; i < rolesData.length; i++) {
-      const r = rolesData[i];
-      const group = groupRecords[i % groupRecords.length];
+    for (const r of rolesData) {
+      // Pair each role with its MEANINGFUL group (volunteer assignment
+      // dropdowns are scoped to this group's members) — never by index.
+      const group = groupRecords.find((g) => g.name === r.group);
+      if (!group) throw new Error(`Seed: no group "${r.group}" for role "${r.name}"`);
       const roleRec = await db.volunteerRole.create({
         data: { orgId: org.id, groupId: group.id, name: r.name, capacity: r.capacity },
       });
@@ -355,8 +357,9 @@ async function main() {
         where: { orgId: org.id, startTime: { gte: new Date() } },
         orderBy: { startTime: "asc" },
       });
+      const roleIndex = rolesData.indexOf(r);
       if (nextEvent) {
-        const assignees = members.slice(i * 4, i * 4 + Math.min(r.capacity, 4));
+        const assignees = members.slice(roleIndex * 4, roleIndex * 4 + Math.min(r.capacity, 4));
         for (const m of assignees) {
           await db.volunteerAssignment.create({
             data: {
