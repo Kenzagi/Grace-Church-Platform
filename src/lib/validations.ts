@@ -142,6 +142,12 @@ export const createGroupSchema = z.object({
   category: z.enum(["ministry", "smallgroup", "committee", "other"]).optional().default("ministry"),
 });
 
+export const updateGroupSchema = createGroupSchema.partial();
+
+export const updateMembershipSchema = z.object({
+  role: z.enum(["leader", "member", "volunteer"]),
+});
+
 // ── Attendance ────────────────────────────────────────────────────────
 
 export const attendanceRecordSchema = z.object({
@@ -184,6 +190,14 @@ export const assignVolunteerSchema = z.object({
   memberId: z.string().min(1, "Member ID is required"),
   status: z.enum(["confirmed", "pending", "declined"]).optional(),
   note: optionalString(500),
+});
+
+export const updateVolunteerRoleSchema = createVolunteerRoleSchema.partial();
+
+export const setVolunteerNeedSchema = z.object({
+  eventId: z.string().min(1, "Event ID is required"),
+  roleId: z.string().min(1, "Role ID is required"),
+  capacity: z.number().int().min(0).max(99),
 });
 
 // ── Series ────────────────────────────────────────────────────────────

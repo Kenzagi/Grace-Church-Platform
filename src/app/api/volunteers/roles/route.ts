@@ -19,10 +19,16 @@ async function _handleGET(req: NextRequest) {
       assignments: eventId
         ? { where: { eventId }, include: { member: { select: { id: true, firstName: true, lastName: true, phone: true } } } }
         : { include: { member: { select: { id: true, firstName: true, lastName: true } }, event: { select: { id: true, title: true, startTime: true } } } },
+      ...(eventId ? { needs: { where: { eventId } } } : {}),
     },
     orderBy: { name: "asc" },
   });
-  return ok({ roles });
+  // Per-event capacity override (EventVolunteerNeed) — null when the role's
+  // default applies. One role can hold at most one need per event.
+  const withCapacity = eventId
+    ? roles.map(({ needs, ...role }) => ({ ...role, capacityOverride: needs?.[0]?.capacity ?? null }))
+    : roles.map((role) => ({ ...role, capacityOverride: null }));
+  return ok({ roles: withCapacity });
 }
 
 async function _handlePOST(req: NextRequest) {

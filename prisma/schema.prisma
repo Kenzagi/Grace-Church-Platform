@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "sqlite" // local dev; production (GitHub) uses postgresql
   url      = env("DATABASE_URL")
 }
 
@@ -269,6 +269,7 @@ model Event {
   attendance    Attendance[]
   eventTags     EventTag[]
   volunteerAssignments VolunteerAssignment[]
+  volunteerNeeds       EventVolunteerNeed[]
 
   @@index([orgId])
   @@index([startTime])
@@ -322,6 +323,7 @@ model VolunteerRole {
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   group        Group?       @relation(fields: [groupId], references: [id], onDelete: SetNull)
   assignments  VolunteerAssignment[]
+  needs        EventVolunteerNeed[]
 
   @@index([orgId])
 }
@@ -341,4 +343,20 @@ model VolunteerAssignment {
 
   @@unique([eventId, roleId, memberId])
   @@index([eventId])
+}
+
+/// Volunteers needed for ONE event — raises or lowers a role's capacity for
+/// that event only. A row exists only when the value differs from the role's
+/// default (equality deletes the row, so the role stays the single truth).
+model EventVolunteerNeed {
+  id       String @id @default(cuid())
+  eventId  String
+  roleId   String
+  capacity Int
+
+  event Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  role  VolunteerRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, roleId])
+  @@index([roleId])
 }

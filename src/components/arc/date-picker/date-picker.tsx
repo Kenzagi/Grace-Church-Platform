@@ -4,9 +4,10 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { ButtonHTMLAttributes, FocusEvent, KeyboardEvent } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { Variants } from "motion/react";
-import { CalendarDays, ChevronDown } from "lucide-react";
+import { CalendarDays, ChevronDown } from "@/components/icons";
 import { Calendar, type CalendarDateMatcher } from "../calendar/calendar";
 import { motionTokens } from "../lib/motion-tokens";
+import { useViewportAnchor, viewportAnchorStyle } from "../lib/use-viewport-anchor";
 import styles from "./date-picker.module.css";
 
 export interface DatePickerProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "value" | "onChange"> {
@@ -51,6 +52,9 @@ export function DatePicker({ label, value, onChange, description, placeholder = 
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  // Keeps the calendar inside the viewport: flips above near the bottom edge,
+  // right-aligns near the right edge, caps height when neither side fits.
+  const placement = useViewportAnchor(open, triggerRef, popoverRef, 6);
   const closeTimer = useRef<number | undefined>(undefined);
   const formatter = new Intl.DateTimeFormat(locale, format);
   const reduce = useReducedMotion() ?? false;
@@ -117,8 +121,8 @@ export function DatePicker({ label, value, onChange, description, placeholder = 
         <ChevronDown className={styles.chevron} size={16} strokeWidth={1.75} aria-hidden="true" />
       </button>
       <AnimatePresence>
-        {open && <motion.div ref={popoverRef} className={styles.popover} role="dialog" aria-label={`${label} calendar`} onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); close(); } }}
-          initial={reduce ? { opacity: 0 } : { opacity: 0, y: -8, scale: .95 }}
+        {open && <motion.div ref={popoverRef} className={styles.popover} role="dialog" aria-label={`${label} calendar`} style={viewportAnchorStyle(placement, { gap: 6, origin: "top left", flippedOrigin: "bottom left" })} onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); close(); } }}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: placement.side === "top" ? 8 : -8, scale: .95 }}
           animate={{ opacity: 1, y: 0, scale: 1, transition: reduce ? instant : { ...spring.snappy, opacity: { duration: duration.fast, ease: ease.enter } } }}
           exit={{ opacity: 0, ...(reduce ? {} : { y: -6, scale: .97 }), transition: { duration: 0.14, ease: ease.standard } }}>
           <Calendar value={value} onChange={selectDate} month={month} onMonthChange={setMonth} minDate={minDate} maxDate={maxDate} disabledDates={disabledDates} locale={locale} showToday={showToday} />

@@ -152,6 +152,8 @@ export interface VolunteerRole {
   id: string;
   name: string;
   capacity: number;
+  /** Per-event override (EventVolunteerNeed) — null when the default applies. */
+  capacityOverride?: number | null;
   groupId: string | null;
   group?: { id: string; name: string } | null;
   assignments?: { id: string; status: string; member: { id: string; firstName: string; lastName: string; phone: string | null } }[];

@@ -13,8 +13,8 @@ import { statusClass, formatDate } from "@/lib/format";
 import {
   Church, CheckCircle2, Mail, Loader2, ArrowRight, ArrowLeft,
   FileText, Headphones, Video, Inbox, User, Home,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+} from "@/components/icons";
+import type { AppIcon } from "@/components/icons";
 import { DateField, todayKey } from "@/components/forms/pickers";
 
 /**
@@ -38,7 +38,7 @@ type PortalSubmission = {
   reviewedAt: string | null;
 };
 
-const TYPE_ICONS: Record<string, LucideIcon> = {
+const TYPE_ICONS: Record<string, AppIcon> = {
   sermon: Headphones,
   audio: Headphones,
   video: Video,
@@ -56,11 +56,11 @@ export default function PortalPage() {
       <header className="h-16 border-b border-border bg-surface flex items-center px-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-sm bg-primary text-primary-foreground flex items-center justify-center">
-            <Icon as={Church} boundingBox={false} size={16} />
+            <Icon as={Church} boundingBox={false} size={18} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-primary">Grace Community Church</p>
-            <p className="text-[11px] text-muted-foreground">Member Media Portal</p>
+            <p className="text-sm font-medium text-primary">Grace Community Church</p>
+            <p className="text-xs text-muted-foreground">Member Media Portal</p>
           </div>
         </div>
         <div className="ml-auto flex items-center gap-1 rounded-sm border border-border bg-surface p-1">
@@ -227,7 +227,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
         <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-7 h-7 text-green-600 dark:text-green-400" />
         </div>
-        <h1 className="text-xl font-semibold text-primary mt-4">Submission received</h1>
+        <h1 className="text-xl font-medium text-primary mt-4">Submission received</h1>
         <p className="text-sm text-muted-foreground mt-2">
           Thank you{result.memberName ? `, ${result.memberName.split(" ")[0]}` : ""}! Your media
           &ldquo;{result.title}&rdquo; is now <strong>pending review</strong>.
@@ -240,7 +240,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
         </p>
         <div className="mt-5 rounded-sm bg-surface-alt border border-border px-4 py-3 text-sm">
           <p className="text-muted-foreground">Your reference code</p>
-          <p className="font-mono text-lg font-semibold tracking-widest text-primary mt-0.5">{result.reference}</p>
+          <p className="font-mono text-lg font-medium tracking-widest text-primary mt-0.5">{result.reference}</p>
         </div>
         <div className="mt-5 text-left rounded-sm border border-border p-4 space-y-2">
           <p className="text-xs font-medium text-foreground uppercase tracking-wide">What happens next</p>
@@ -260,7 +260,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
   if (step === "email") {
     return (
       <div className="bg-surface border border-border rounded-md p-8 shadow-sm">
-        <h1 className="text-xl font-semibold text-primary">Submit media for review</h1>
+        <h1 className="text-xl font-medium text-primary">Submit media for review</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Share a sermon contribution, testimony, video, audio, or document with the church.
           First, confirm your identity with the email on file.
@@ -300,7 +300,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
   if (step === "choose") {
     return (
       <div className="bg-surface border border-border rounded-md p-8 shadow-sm">
-        <h1 className="text-xl font-semibold text-primary">Who is submitting?</h1>
+        <h1 className="text-xl font-medium text-primary">Who is submitting?</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Several members share the email <strong>{email.trim()}</strong>. Please select yourself.
         </p>
@@ -335,7 +335,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
   // ── Step: details ──
   return (
     <div className="bg-surface border border-border rounded-md p-6 sm:p-8 shadow-sm">
-      <h1 className="text-xl font-semibold text-primary">Your submission</h1>
+      <h1 className="text-xl font-medium text-primary">Your submission</h1>
       <p className="text-sm text-muted-foreground mt-1">
         Add your media below — it will be reviewed by a church administrator before publication.
       </p>
@@ -343,7 +343,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
       {/* Identity — auto-resolved from the directory email. Read-only by design:
           member, household, and email are never asked for twice. */}
       <div className="mt-5 rounded-sm border border-border bg-surface-alt p-4">
-        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground mb-3">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3">
           Auto-filled from the email in our member directory
         </p>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -501,7 +501,7 @@ function StatusPanel({ initialEmail }: { initialEmail: string }) {
 
   return (
     <div className="bg-surface border border-border rounded-md p-8 shadow-sm">
-      <h1 className="text-xl font-semibold text-primary">Check submission status</h1>
+      <h1 className="text-xl font-medium text-primary">Check submission status</h1>
       <p className="text-sm text-muted-foreground mt-1">
         Enter the email you submitted with to see your media and its review status.
       </p>
@@ -549,12 +549,12 @@ function StatusPanel({ initialEmail }: { initialEmail: string }) {
                   return (
                     <div key={s.id} className="p-3 sm:p-4 flex items-start gap-3">
                       <span className="w-9 h-9 rounded-sm bg-surface-alt flex items-center justify-center shrink-0">
-                        <Icon as={Ic} boundingBox={false} size={16} />
+                        <Icon as={Ic} boundingBox={false} size={18} />
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-medium text-primary truncate">{s.title}</p>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-sm border text-[11px] font-medium capitalize ${statusClass(s.status)}`}>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-sm border text-xs font-medium capitalize ${statusClass(s.status)}`}>
                             {s.status}
                           </span>
                         </div>

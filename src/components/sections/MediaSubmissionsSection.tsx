@@ -17,11 +17,11 @@ import { toast } from "sonner";
 import {
   Library, Plus, Search, Play, Clock, Calendar, User, Filter,
   Check, X, Inbox, FileText, Headphones, Video, Settings2, Pencil, Trash2,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+} from "@/components/icons";
+import type { AppIcon } from "@/components/icons";
 import { DateField, todayKey } from "@/components/forms/pickers";
 
-const TYPE_ICONS: Record<string, LucideIcon> = {
+const TYPE_ICONS: Record<string, AppIcon> = {
   sermon: Headphones,
   audio: Headphones,
   video: Video,
@@ -51,15 +51,14 @@ export function MediaSection() {
     <div>
       <PageHeader
         title="Media Library"
-        description="Sermon archive and media assets — browse, filter, and add new content."
         actions={
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" onClick={() => setShowSeriesManager(true)} className="h-9">
-              <Icon as={Settings2} boundingBox={false} size={14} />
+              <Icon as={Settings2} boundingBox={false} size={16} />
               <span className="hidden sm:inline">Manage series</span>
             </Button>
             <Button size="sm" onClick={() => setShowAdd(true)} className="h-9">
-              <Icon as={Plus} boundingBox={false} size={14} />
+              <Icon as={Plus} boundingBox={false} size={16} />
               <span className="hidden sm:inline">Add media</span>
             </Button>
           </div>
@@ -70,7 +69,7 @@ export function MediaSection() {
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              <Icon as={Search} boundingBox={false} size={16} />
+              <Icon as={Search} boundingBox={false} size={18} />
             </span>
             <input
               value={search}
@@ -104,25 +103,27 @@ export function MediaSection() {
       ) : error ? (
         <ErrorState title="Couldn't load media" description={error} onRetry={refetch} />
       ) : media.length === 0 ? (
-        <EmptyState title="No media found" description="Try adjusting filters or add new media." />
+        <EmptyState title="No media found" />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {media.map((m) => {
             const Ic = TYPE_ICONS[m.type] || Library;
             return (
-              <SectionCard key={m.id} className="p-5 hover:shadow-sm transition-shadow cursor-pointer" >
-                <div onClick={() => setSelected(m)}>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="w-11 h-11 rounded-sm bg-surface-alt flex items-center justify-center">
+              <SectionCard key={m.id} className="p-3.5 min-h-20 hover:shadow-sm transition-shadow cursor-pointer">
+                <div onClick={() => setSelected(m)} className="flex flex-col gap-2.5 h-full">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-md bg-surface-alt flex items-center justify-center shrink-0">
                       <Icon as={Ic} boundingBox={false} />
                     </div>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-sm border text-[11px] font-medium capitalize ${statusClass(m.status)}`}>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-medium text-primary truncate">{m.title}</h3>
+                      {m.description && <p className="text-caption truncate">{m.description}</p>}
+                    </div>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-sm border text-xs font-medium capitalize shrink-0 ${statusClass(m.status)}`}>
                       {m.status}
                     </span>
                   </div>
-                  <h3 className="text-title text-primary line-clamp-2 mb-1">{m.title}</h3>
-                  {m.description && <p className="text-caption line-clamp-2 mb-3">{m.description}</p>}
-                  <div className="flex items-center gap-4 text-caption mt-3 flex-wrap">
+                  <div className="flex items-center gap-3 text-caption flex-wrap">
                     {m.speaker && (
                       <span className="flex items-center gap-1">
                         <Icon as={User} boundingBox={false} size={14} />
@@ -139,8 +140,8 @@ export function MediaSection() {
                         {formatDuration(m.duration)}
                       </span>
                     )}
+                    {m.series && <span className="flex items-center gap-1"><Icon as={Library} boundingBox={false} size={14} />{m.series.name}</span>}
                   </div>
-                  {m.series && <Badge variant="secondary" className="mt-3 text-[11px]">{m.series.name}</Badge>}
                 </div>
               </SectionCard>
             );
@@ -215,7 +216,7 @@ function ManageSeriesDialog({ onClose, onChanged }: { onClose: () => void; onCha
           {loading ? <LoadingSpinner label="Loading series…" />
           : error ? <ErrorState title="Couldn't load series" description={error} onRetry={refetch} />
           : series.length === 0 ? (
-            <EmptyState title="No series yet" description="Create a series from the Add media form — it will appear here for editing." />
+            <EmptyState title="No series yet" />
           ) : (
             <div className="divide-y divide-border rounded-sm border border-border">
               {series.map((s) => {
@@ -255,10 +256,10 @@ function ManageSeriesDialog({ onClose, onChanged }: { onClose: () => void; onCha
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           <Button size="sm" variant="ghost" onClick={() => startEdit(s)} aria-label={`Edit ${s.name}`}>
-                            <Icon as={Pencil} boundingBox={false} size={14} />Edit
+                            <Icon as={Pencil} boundingBox={false} size={16} />Edit
                           </Button>
                           <Button size="sm" variant="ghost" onClick={() => { setDeletingId(s.id); setEditingId(null); }} className="text-red-600" aria-label={`Delete ${s.name}`}>
-                            <Icon as={Trash2} boundingBox={false} size={14} />Delete
+                            <Icon as={Trash2} boundingBox={false} size={16} />Delete
                           </Button>
                         </div>
                       </div>
@@ -299,7 +300,7 @@ function AddMediaDialog({ series: initialSeries, onClose, onSaved }: { series: S
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto scrollbar-thin">
         <DialogHeader>
           <DialogTitle>Add media item</DialogTitle>
-          <DialogDescription>Add a new sermon, audio, video, or document to the library.</DialogDescription>
+          
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
@@ -351,7 +352,7 @@ function AddMediaDialog({ series: initialSeries, onClose, onSaved }: { series: S
                   className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline mt-1.5 cursor-pointer"
                   onClick={() => setShowInlineSeries(true)}
                 >
-                  <Icon as={Plus} boundingBox={false} size={12} />Create new series
+                  <Icon as={Plus} boundingBox={false} size={14} />Create new series
                 </button>
               )}
               {showInlineSeries && (
@@ -409,7 +410,7 @@ function MediaDetailDialog({ media, onClose, onSaved }: { media: MediaItem; onCl
           </dl>
           {media.url && (
             <div className="flex items-center gap-2 rounded-sm bg-surface-alt p-3">
-              <Icon as={Play} boundingBox={false} size={16} className="text-primary" />
+              <Icon as={Play} boundingBox={false} size={18} className="text-primary" />
               <a href={media.url} target="_blank" rel="noreferrer" className="text-sm text-primary hover:underline truncate flex-1">{media.url}</a>
             </div>
           )}
@@ -423,7 +424,7 @@ function MediaDetailDialog({ media, onClose, onSaved }: { media: MediaItem; onCl
             </div>
           ) : (
             <>
-              <Button variant="ghost" size="sm" onClick={() => setDeleting(true)} className="text-red-600"><Icon as={X} boundingBox={false} size={14} />Delete</Button>
+              <Button variant="ghost" size="sm" onClick={() => setDeleting(true)} className="text-red-600"><Icon as={X} boundingBox={false} size={16} />Delete</Button>
               <Button size="sm" onClick={onClose}>Close</Button>
             </>
           )}
@@ -446,7 +447,6 @@ export function SubmissionsSection() {
     <div>
       <PageHeader
         title="Submissions"
-        description="Review queue for member-submitted media before publication. Members submit via the public portal at /portal."
         actions={
           <div className="flex items-center gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -464,7 +464,7 @@ export function SubmissionsSection() {
 
       {pending > 0 && statusFilter !== "pending" && (
         <div className="rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 mb-4 flex items-center gap-3">
-          <Icon as={Inbox} boundingBox={false} size={18} className="text-amber-600" />
+          <Icon as={Inbox} boundingBox={false} size={20} className="text-amber-600" />
           <span className="text-sm text-amber-800"><strong>{pending}</strong> submission{pending !== 1 ? "s" : ""} awaiting review.</span>
         </div>
       )}
@@ -472,14 +472,14 @@ export function SubmissionsSection() {
       <SectionCard>
         {loading ? <LoadingSpinner label="Loading submissions…" />
         : error ? <ErrorState title="Couldn't load submissions" description={error} onRetry={refetch} />
-        : submissions.length === 0 ? <EmptyState title="No submissions" description="Member-submitted media will appear here for review." />
+        : submissions.length === 0 ? <EmptyState title="No submissions" />
         : (
           <div className="divide-y divide-border">
             {submissions.map((s) => (
               <div key={s.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-surface-alt transition-colors">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <div className="w-10 h-10 rounded-sm bg-surface-alt flex items-center justify-center shrink-0">
-                    <Icon as={TYPE_ICONS[s.mediaItem.type] || FileText} boundingBox={false} size={16} />
+                    <Icon as={TYPE_ICONS[s.mediaItem.type] || FileText} boundingBox={false} size={18} />
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium text-primary truncate">{s.mediaItem.title}</p>
@@ -495,7 +495,7 @@ export function SubmissionsSection() {
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-sm border text-xs font-medium capitalize ${statusClass(s.status)}`}>{s.status}</span>
                   {s.status === "pending" && (
                     <Button size="sm" variant="outline" onClick={() => setReviewing(s)}>
-                      <Icon as={Check} boundingBox={false} size={14} />Review
+                      <Icon as={Check} boundingBox={false} size={16} />Review
                     </Button>
                   )}
                 </div>
@@ -540,7 +540,7 @@ function ReviewDialog({ submission, onClose, onDone }: { submission: Submission;
           <div className="rounded-sm bg-surface-alt p-4 space-y-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-sm bg-surface flex items-center justify-center shrink-0">
-                <Icon as={Ic} boundingBox={false} size={16} />
+                <Icon as={Ic} boundingBox={false} size={18} />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-primary truncate">{submission.mediaItem.title}</p>
@@ -576,7 +576,7 @@ function ReviewDialog({ submission, onClose, onDone }: { submission: Submission;
             )}
             {submission.mediaItem.url && (
               <a href={submission.mediaItem.url} target="_blank" rel="noreferrer" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
-                <Icon as={Play} boundingBox={false} size={14} />Listen / view
+                <Icon as={Play} boundingBox={false} size={16} />Listen / view
               </a>
             )}
           </div>
@@ -587,10 +587,10 @@ function ReviewDialog({ submission, onClose, onDone }: { submission: Submission;
         </div>
         <DialogFooter className="flex items-center justify-between">
           <Button variant="destructive" size="sm" onClick={() => act("rejected")} disabled={acting}>
-            <Icon as={X} boundingBox={false} size={14} />Reject
+            <Icon as={X} boundingBox={false} size={16} />Reject
           </Button>
           <Button size="sm" onClick={() => act("approved")} disabled={acting}>
-            <Icon as={Check} boundingBox={false} size={14} />Approve &amp; publish
+            <Icon as={Check} boundingBox={false} size={16} />Approve &amp; publish
           </Button>
         </DialogFooter>
       </DialogContent>

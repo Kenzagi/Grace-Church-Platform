@@ -136,3 +136,35 @@ Stage Summary:
 - Every date/time input in the app (Events start/end, Members DOB ×2, Media date, Portal date) now uses the vendored uiarc pickers — no native browser controls anywhere (verified by grep); Events + Audit Log lists have beui range filters over strict UTC day-boundary APIs.
 - Wire formats and API semantics unchanged for valid clients; four latent "form can't save" validation bugs fixed at the schema layer (single path), plus the silently-dropped media date.
 - Deviations from upstream registries: none (vendored files byte-identical; app-side adapters + token bridge carry all customization). Remaining deferred: Redis store, blob storage, PostgreSQL (per standing agreement).
+
+Task ID: 7 (session p — rollback recovery)
+Agent: Super Z (main agent)
+Task: "Hey Z, It looks like we have lost all of the progress we made yesterday. What happened?" — diagnose the second sandbox rollback and restore everything.
+
+What happened:
+- The sandbox rolled the working tree back to the Oct 31 checkpoint again (same failure mode as the pre-session-g rollback, worklog Task 6). All Nov 1–2 work vanished from disk: the role→group data fix + seed fix (session o), pagination (members/audit/groups), GroupsSection cards, AttendanceCard, the style-system/size/copy/dark-spec sweeps, volunteer multiselect, timepicker panes, and the session-o fix scripts.
+- This time the platform left a partial snapshot at /tmp/my-project (new files only, mtimes Nov 1–2, no git). It was preserved to .recovery-snapshot/ within minutes of discovery (22MB) — /tmp is wiped on every recycle, so this was the only window.
+- Git could NOT restore the lost work: the auto-checkpoint amend chain (634b215 → f13918d → c31d365) captured only the already-rolled-back tree; reflog + fsck confirmed no orphan held the Nov 1–2 content.
+
+Recovered intact from the snapshot (checksummed copies):
+- 11 new src files: GroupsSection.tsx (cards + edit + roster + delete), AttendanceCard.tsx (4w/12w/6m ranges, pill bars), icons.tsx (Nucleo barrel), api groups/[id] + memberships/[membershipId] (leadership PATCH), api volunteers/roles/[id] (role PATCH), api volunteers/needs (per-event capacity override), lib/{pagination,date-filter,date-range-presets}.ts, arc/lib/use-viewport-anchor.ts (viewport-aware popover flip), public/fonts.
+- 21 scripts incl. the session patch scripts (apply-style-system, apply-size-bump, copy-sweep, apply-dark-spec-sweep), fix-role-group-links.py, inspect-groups.py, all test-* verifiers.
+- 90 verification PNGs restored into download/.
+
+Reconstructed (lost modifications to pre-existing files — rebuilt from the patch scripts, the evidence screenshots, and the dark spec):
+- Re-ran the four patch scripts in session order (style-system → size-bump → copy-sweep → dark-spec); exact-match + loud-abort held, only the pairs whose old strings lived in lost code failed.
+- Dark spec (Linear-dark): globals.css token flip — #1A1A1A page / #212121 cards / #292929 selected, #EEEEEE/#B5B5B5 text, white 5% borders, Inter via next/font (layout.tsx), forced dark (Providers), 28px/6px controls (button/input/select), 20px logo + 14px nav icons (AppShell), 16/20 Medium PageHeader titles, 13px captions, ThemeToggle removed. .dark block synced (dark-first, toggle-free).
+- Volunteers six-item list: multiselect AssignDialog (checkbox list, group-scoped, appointed members excluded, "Assign N"), volunteers-needed dialog (per-event EventVolunteerNeed override + roles GET capacityOverride), filled roles sink to the bottom (live re-sort), role cards + event rows gained Edit dialogs reusing the create forms (PATCH roles/[id] + events/[id]).
+- TimePicker redesigned to two scrollable panes (hours | minutes, 24×12 instead of one 288-row list); both arc pickers now anchor via use-viewport-anchor (flip above/right, maxHeight clamp).
+- Schema: EventVolunteerNeed model (db push + client regen); validations: updateGroupSchema, updateMembershipSchema, updateVolunteerRoleSchema, setVolunteerNeedSchema.
+- Data: fix-role-group-links.py re-applied (links verified correct); seed.ts re-fixed to pair roles→groups by NAME with throw-if-missing (root cause of the original mixup); nucleo-core-essential-outline-24@1.1.7 reinstalled (was lost with node_modules).
+- page.tsx groups section → GroupsSection.
+
+Tooling note discovered during recovery: bracketed path segments starting [m (e.g. [membershipId]) are silently stripped from tool OUTPUT text — they display as "embershipId]". Verify such paths by checksum/hex, never by sight.
+
+Verification (fresh browser session, zero page errors): tsc + eslint clean; login 200; role→group links correct via API (Greeter→Greeters, Worship→Worship Team, Children's Worker→Children's Ministry); Groups renders 7 cards each with Edit + roster; Volunteers: multiselect assigned 2 (toast "2 volunteers assigned"), appointed members excluded on reopen, Greeter filled 4/4 sank to bottom and flipped to "Volunteers needed", need override set 6 → card 4/6 and rose back; role edit PATCH persisted (capacity 4→5→restored 4); timepicker panes committed 09:30 (24h | 5-min steps); event edit dialog prefilled + saved. QA event + assignments deleted after the run. Screenshots: download/verify-dark-{dashboard,groups,volunteers}-restored.png, download/verify-timepicker-panes-{restored,picked}.png.
+
+Stage Summary:
+- Everything from the lost Nov 1–2 sessions is back: groups cards + editing, pagination, attendance card, style/dark sweeps, multiselect volunteers, need overrides, filled-to-bottom, pane timepicker — verified end-to-end and committed as a real commit (no reliance on auto-checkpoints).
+- Standing mitigations: .recovery-snapshot/ preserved in-tree and zipped to download/ for off-sandbox keeping; pushing to a git remote remains the one durable fix the platform cannot roll back (needs a user-provided remote).
+- Deferred per standing agreement: Redis, blob storage, PostgreSQL.

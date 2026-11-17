@@ -13,13 +13,13 @@
  */
 import * as React from "react";
 import {
-  LucideProps,
-  LucideIcon,
-} from "lucide-react";
+  AppIconProps,
+  AppIcon,
+} from "@/components/icons";
 import { cn } from "@/lib/utils";
 
-export interface IconProps extends Omit<LucideProps, "ref"> {
-  as: LucideIcon;
+export interface IconProps extends Omit<AppIconProps, "ref"> {
+  as: AppIcon;
   /** Container reserves 24px so icons align in rows regardless of glyph size. */
   boundingBox?: boolean;
 }
