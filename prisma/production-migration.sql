@@ -1,5 +1,5 @@
 -- =====================================================================
--- Grace Community Church Platform — production migration (Nov 2026 sync)
+-- Teleios Platform — production migration (Nov 2026 sync)
 -- Applies the schema changes from the Nov 2026 progress sync to an
 -- EXISTING PostgreSQL database (Supabase / Neon / Vercel Postgres).
 --

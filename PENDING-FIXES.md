@@ -1,4 +1,4 @@
-# Grace Community Church — Pending UI/UX Fixes & Features
+# Teleios — Pending UI/UX Fixes & Features
 
 > Status as of October 2026. These items were identified during live testing of the Vercel deployment.
 >
@@ -255,3 +255,35 @@ and identity metadata is **derived, never asked for twice**:
   member's chosen series + date (verified end-to-end in the library card).
 
 **Files:** `src/app/portal/page.tsx`, `src/app/api/portal/lookup/route.ts`, `src/app/api/portal/submissions/route.ts`, `src/app/api/submissions/route.ts`, `src/lib/validations.ts`, `src/lib/types.ts`, `src/components/sections/MediaSubmissionsSection.tsx`
+
+---
+
+## Teleios Rename — Deferred Items (Nov 2026)
+
+The app was renamed from "Grace Church Platform" to **Teleios** (all static UI strings,
+metadata, docs, package name). The following intentionally keep "grace" naming because
+changing them would touch **database data or break seeded credentials** — do them as a
+follow-up data migration when out of the production-testing window:
+
+1. **Seeded login credentials** — `admin@grace.community` / `grace2026` come from
+   `prisma/seed.ts` (`AdminUser.email`) and are pre-filled on the sign-in screen.
+   Renaming the domain (e.g. `@teleios.app`) needs a DB update of every `AdminUser.email`
+   plus member emails (`@grace.community`), then updating the sign-in prefill.
+2. **Organization record** — the seeded `Organization` row (`slug: grace-community`,
+   `name: Grace Community Church`) is what the top bar shows via
+   `user.organization?.name`. Rename = one `UPDATE "Organization" SET name='Teleios'`
+   (and optionally the slug) on the local SQLite DB and the production DB.
+3. **Admin display name** — seeded admin is named "Grace Admin" (`AdminUser.name`).
+4. **Media URLs in seed data** — `https://media.grace.community/...` sermon/submission
+   URLs are stored rows; cosmetic, rename only if the domain ever changes.
+5. **Kept on purpose (religious content / person names, not the app name):**
+   portal placeholder "My testimony — How I found Grace", ministry "Grace in Action",
+   sermon "What is Grace?", published media "Grace in communion", sample CSV member
+   "Grace Wanjiru", and all `worklog.md` historical entries.
+6. **GitHub repository name** — `Kenzagi/Grace-Church-Platform`; renaming is a GitHub
+   settings change (URLs/CI re-point) — user decision.
+
+Design system note: the sign-in screen uses the dealt light style (palette
+`cool-white-slate`, type `instrument`, radius `soft`) scoped under `.teleios-light` in
+`globals.css`; the signed-in app keeps the Linear-dark spec. If the whole app moves to
+light later, promote those tokens to `:root`.

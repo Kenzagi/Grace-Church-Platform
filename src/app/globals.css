@@ -4,9 +4,10 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Grace Community Church Member Management Platform
-  Design System — Linear-dark spec
-  - Type: Inter (16/20px Medium titles, 14px Medium names, 13px Regular subtext)
+  Teleios (formerly Grace Community Church Member Management Platform)
+  Design System — Linear-dark spec (signed-in app) + Teleios-light scope (pre-auth)
+  - Type: Inter (16/20px Medium titles, 14px Medium names, 13px Regular subtext);
+    pre-auth screens: Instrument Sans + DM Mono (dealt pairing "instrument")
   - Surfaces: #1A1A1A page, #212121 cards, #292929 selected
   - Cards: 10px radius, 14px padding, 20px gap, white 5% border
   - Controls: 28px height, 6px radius; primary = #FFFFFF fill, #202020 text
@@ -153,6 +154,110 @@
   --sidebar-accent-foreground: #eeeeee;
   --sidebar-border: rgb(255 255 255 / 5%);
   --sidebar-ring: #ffffff;
+}
+
+/* ── Teleios light scope (pre-auth screens) ───────────────────────────────
+   The dealt style (taste-skill 2.5: palette cool-white-slate — frost ground
+   #f7f9fa, slate ink #1f3038, deep teal accent #0d7480; type "instrument" —
+   Instrument Sans + DM Mono; radius soft) applied to the sign-in screen only.
+   The signed-in app above keeps the Linear-dark tokens. All contrast pairs
+   verified ≥ 4.5:1 (ink 12.9:1, muted 5.2:1, white-on-teal 5.5:1). */
+.teleios-light {
+  --background: #f7f9fa;
+  --foreground: #1f3038;
+  --surface: #ffffff;
+  --surface-alt: #ecf0f2;
+  --card: #ffffff;
+  --card-foreground: #1f3038;
+  --popover: #ffffff;
+  --popover-foreground: #1f3038;
+  --primary: #0d7480;
+  --primary-foreground: #ffffff;
+  --secondary: #ecf0f2;
+  --secondary-foreground: #1f3038;
+  --muted: #ecf0f2;
+  --muted-foreground: #43515a;
+  --accent: #ecf0f2;
+  --accent-foreground: #1f3038;
+  /* Darker red than the dark theme's #e55a4a: 3.56:1 on white fails AA,
+     #c23b28 measures 5.32:1 on white / 4.64:1 on surface (verified). */
+  --destructive: #c23b28;
+  --border: rgb(31 48 56 / 10%);
+  --input: rgb(31 48 56 / 16%);
+  --ring: #0d7480;
+  --border-strong: rgb(31 48 56 / 16%);
+  --border-subtle: rgb(31 48 56 / 10%);
+  --text-muted: #43515a;
+  --text-secondary: #43515a;
+  font-family: var(--font-instrument), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+/* Focus: solid ink outline over a white halo — visible on the frost ground,
+   the white card and the teal button (ink 13.65:1 on white, teal 5.49:1;
+   ink alone on the teal button is only 2.49:1). Styled on :focus too, since
+   programmatic focus does not always match :focus-visible. */
+.teleios-light :focus,
+.teleios-light :focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px #ffffff;
+}
+/* The kit's outline-none utilities remove the outline with nothing in their
+   place — reinstate the same ring for the scoped selectors. */
+.teleios-light .focus\:outline-none:focus,
+.teleios-light .focus\:outline-hidden:focus,
+.teleios-light .focus-visible\:outline-none:focus-visible,
+.teleios-light .focus-visible\:outline-hidden:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+/* Skip link: first Tab stop, hidden until focused, ring always visible */
+.teleios-light .tl-skip {
+  position: fixed;
+  left: 16px;
+  top: 12px;
+  z-index: 50;
+  transform: translateY(-300%);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: transform 120ms ease;
+}
+.teleios-light .tl-skip:focus-visible {
+  transform: none;
+}
+/* Dealt display tracking (--display-tracking) for the screen's one big line */
+.teleios-light h1 {
+  letter-spacing: -0.028em;
+}
+/* DM Mono carries the demo credentials (data, not prose) */
+.teleios-light code {
+  font-family: var(--font-dm-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+/* One page-load entrance — no scroll effects, no per-card motion */
+.teleios-light .t-enter {
+  animation: t-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.teleios-light .t-enter-2 {
+  animation: t-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+@keyframes t-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .teleios-light .t-enter,
+  .teleios-light .t-enter-2 {
+    animation: none;
+  }
 }
 
 /* ── Vendored picker tokens (src/components/arc/*) ────────────────────────

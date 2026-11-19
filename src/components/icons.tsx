@@ -143,6 +143,40 @@ export const Loader2 = (props: PrimitiveProps) => (
   </svg>
 );
 
+/** Eye / EyeOff — password visibility toggle (essential set lacks both). */
+export const Eye = (props: PrimitiveProps) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={24}
+    height={24}
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    {...props}
+  >
+    <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+export const EyeOff = (props: PrimitiveProps) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={24}
+    height={24}
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    {...props}
+  >
+    <path d="M2.8 12.5S6 6.5 12 6.5c1.6 0 3 .4 4.2 1M21.2 11.5S18 17.5 12 17.5c-1.6 0-3-.4-4.2-1" />
+    <path d="M4 20 20 4" />
+  </svg>
+);
+
 /** Vertical drag grip (was lucide `GripVertical`). */
 const Grip = (props: PrimitiveProps) => (
   <svg viewBox="0 0 24 24" width={24} height={24} fill="currentColor" aria-hidden="true" {...props}>

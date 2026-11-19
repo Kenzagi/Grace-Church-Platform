@@ -59,7 +59,7 @@ export default function PortalPage() {
             <Icon as={Church} boundingBox={false} size={18} />
           </div>
           <div>
-            <p className="text-sm font-medium text-primary">Grace Community Church</p>
+            <p className="text-sm font-medium text-primary">Teleios</p>
             <p className="text-xs text-muted-foreground">Member Media Portal</p>
           </div>
         </div>

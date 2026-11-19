@@ -173,7 +173,7 @@ export function AppShell({
               </TooltipContent>
             </Tooltip>
             <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-medium text-primary">{user.organization?.name || "Grace Community Church"}</span>
+              <span className="font-medium text-primary">{user.organization?.name || "Teleios"}</span>
               <span className="text-border">/</span>
               <span className="capitalize">{activeLabel}</span>
             </div>
@@ -203,7 +203,7 @@ export function AppShell({
             {/* Footer sits at the end of the scrollable content */}
             <footer className="border-t border-border bg-surface px-6 py-4">
               <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-caption">
-                <p>Grace Community Church · Member Management Platform v2.0</p>
+                <p>Teleios — Church Administration Platform v2.0</p>
                 <p>Secure · Audited · {new Date().getFullYear()}</p>
               </div>
             </footer>
@@ -268,8 +268,8 @@ function SidebarContent({
         </div>
         {!collapsed && (
           <div className="min-w-0">
-            <p className="text-sm font-medium text-primary truncate">Grace Community</p>
-            <p className="text-xs text-muted-foreground truncate">Member Platform</p>
+            <p className="text-sm font-medium text-primary truncate">Teleios</p>
+            <p className="text-xs text-muted-foreground truncate">Administration</p>
           </div>
         )}
       </div>

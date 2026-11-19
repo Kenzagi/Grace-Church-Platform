@@ -1,0 +1,100 @@
+{
+ "url": "http://localhost:3000/",
+ "views": {
+  "desktop": {
+   "width": 1440,
+   "height": 900,
+   "navH": 0,
+   "scrollHeight": 900,
+   "screens": 1,
+   "sections": [
+    {
+     "n": 1,
+     "tag": "section",
+     "id": "",
+     "cls": "w-full max-w-5xl grid lg:grid-cols-[1.05fr_1fr] gap-10 lg:ga",
+     "top": 159,
+     "h": 526,
+     "hScreens": 0.58,
+     "offGrid": 526,
+     "tiles": [
+      {
+       "file": "desktop-sec-01-a.jpg",
+       "scrollY": 0,
+       "cutTop": 159,
+       "height": 526
+      }
+     ]
+    },
+    {
+     "n": 2,
+     "tag": "footer",
+     "id": "",
+     "cls": "px-6 py-5 flex flex-col sm:flex-row items-center justify-bet",
+     "top": 844,
+     "h": 56,
+     "hScreens": 0.06,
+     "offGrid": 56,
+     "tiles": [
+      {
+       "file": "desktop-sec-02-a.jpg",
+       "scrollY": 0,
+       "cutTop": 844,
+       "height": 56
+      }
+     ]
+    }
+   ],
+   "consoleErrors": []
+  },
+  "mobile": {
+   "width": 390,
+   "height": 844,
+   "navH": 0,
+   "scrollHeight": 1094,
+   "screens": 1.3,
+   "sections": [
+    {
+     "n": 1,
+     "tag": "section",
+     "id": "",
+     "cls": "w-full max-w-5xl grid lg:grid-cols-[1.05fr_1fr] gap-10 lg:ga",
+     "top": 40,
+     "h": 938,
+     "hScreens": 1.11,
+     "offGrid": 94,
+     "tiles": [
+      {
+       "file": "mobile-sec-01-a.jpg",
+       "scrollY": 40
+      },
+      {
+       "file": "mobile-sec-01-b.jpg",
+       "scrollY": 134
+      }
+     ]
+    },
+    {
+     "n": 2,
+     "tag": "footer",
+     "id": "",
+     "cls": "px-6 py-5 flex flex-col sm:flex-row items-center justify-bet",
+     "top": 1018,
+     "h": 76,
+     "hScreens": 0.09,
+     "offGrid": 76,
+     "tiles": [
+      {
+       "file": "mobile-sec-02-a.jpg",
+       "scrollY": 250,
+       "cutTop": 768,
+       "height": 76
+      }
+     ]
+    }
+   ],
+   "consoleErrors": []
+  }
+ },
+ "at": "2026-11-19T22:37:54.336Z"
+}

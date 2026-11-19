@@ -1,0 +1,169 @@
+consistency  http://localhost:3000/
+
+1440x900  1 screens  13 FAIL  3 WARN
+  FAIL assets          (the page)
+       the stylesheet _next/static/chunks/ac563b1186405c2f.css did not load (500): everything here was measured without it
+       fix: fix the path, or remove the reference
+  FAIL assets          (the page)
+       the script _next/static/chunks/cc7660b86cd7227f.js did not load (500)
+       fix: fix the path, or remove the reference
+  FAIL cta             div.min-h-screen.flex
+       the hero has no button (the nav's does not count)  [1440-01-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  FAIL copy-headline   (the page)
+       the page has no visible h1
+       fix: put the category noun in the h1 (and who it is for, or where), in 2 to 8 words
+  FAIL copy-fact       (the page)
+       the first screen holds no number, price, date, place, platform or genre
+       fix: put one hard fact from the brief on the first screen: a number, a price, a date, the place, the platforms it runs on or a game's genre; take it from the brief or remove the claim
+  WARN heading-scale   (the page)
+       the page has no visible h1
+       fix: size headings by level: the h1 largest, one size per level, each level below the one above
+  WARN moment-none     (the page)
+       a software page (--type) deals no moment: every kind carries one, two on a long page (moments.md)
+       fix: deal one (moments.mjs pick --page software) and mount it in its own section
+  FAIL hero-screen     div  "Application error: a client-side excepti"
+       the hero ends at 908px on a 900px screen, 8px below the fold: it ends at the fold, 1px either way (SR-1)  [1440-rhythm-01-hero-screen.jpg]
+       fix: make the hero exactly one screen (height: 100svh, its content fitted inside), never taller or shorter
+  WARN section-height  div  "Application error: a client-side excepti"
+       the section starts at 8px, 8px below the screen grid (0 x 900px): sections start on whole screens (SR-2)  [1440-rhythm-09-section-height.jpg]
+       fix: make every section above it exactly one or two screens tall, so this one starts on a whole screen
+  FAIL one-heading     div > div > h2  "Application error: a client-side excepti"
+       the hero holds an h2 (1): its heading is the h1, and an h2 opens the next section (SR-5)  [1440-rhythm-02-one-heading.jpg]
+       fix: give each section one h2, first in its .wrap, and the hero only its h1
+  FAIL container-edges div  "Application error: a client-side excepti"
+       the content of section 1 runs 271px from the left and 271px from the right (read from its outermost blocks: no .wrap): the margin is 64-120px at 1440px (one container, equal margins, 2px either way) (SR-6)  [1440-rhythm-03-container-edges.jpg]
+       fix: use one container on every section and the nav (.wrap): one margin left and right, 64-120px on a desktop, 16-24px on a phone
+  FAIL container-edges div  "Application error: a client-side excepti"
+       a <div> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)  [1440-rhythm-04-container-edges.jpg]
+       fix: build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing
+  FAIL container-edges div  "Application error: a client-side excepti"
+       the section needs exactly one in-flow child .wrap (it has 1 in-flow child, 0 .wrap) (SR-6)  [1440-rhythm-05-container-edges.jpg]
+       fix: build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing
+  FAIL container-edges div > div > h2  "Application error: a client-side excepti"
+       1 text block starts on a left line at x 279, 8px from the container's left: text starts on the container's left, or on one split line (x 655, 732, 809) (SR-6)  [1440-rhythm-06-container-edges.jpg]
+       fix: start the text on the container's left, or on the one split line every split shares
+  FAIL container-edges div > div > h2  "Application error: a client-side excepti"
+       the h2 starts 8px right of the container's left: every h1 and h2 starts on it, 2px either way (SR-6)  [1440-rhythm-07-container-edges.jpg]
+       fix: start the text on the container's left, or on the one split line every split shares
+  FAIL container-edges div > div > h2  "Application error: a client-side excepti"
+       "Application error: a client-side" is set centred across 883px, over half the 899px container: text that wide is set left (SR-6)  [1440-rhythm-08-container-edges.jpg]
+       fix: set the text left (text-align: start)
+  (probe error) effect-kind: could not read http://localhost:3000/_next/static/chunks/cc7660b86cd7227f.js (HTTP 500)
+  (probe error) section-tile: no top-level sections (no main > *, no body > section)
+
+768x1024  2 screens  5 FAIL  2 WARN
+  FAIL no-visual       div  "Application error: a client-side excepti"
+       no picture, effect or mock in this section; a feature section needs a visual  [768-01-no-visual.jpg]
+       fix: give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits
+  FAIL cta             div
+       the hero has no button (the nav's does not count)  [768-02-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  WARN heading-scale   (the page)
+       the page has no visible h1
+       fix: size headings by level: the h1 largest, one size per level, each level below the one above
+  FAIL hero-screen     div.min-h-screen.flex  "Loading Teleios…"
+       the hero ends at 62px on a 1024px screen, 962px above the fold: it ends at the fold, 1px either way (SR-1)  [768-rhythm-01-hero-screen.jpg]
+       fix: make the hero exactly one screen (height: 100svh, its content fitted inside), never taller or shorter
+  WARN section-height  div.min-h-screen.flex  "Loading Teleios…"
+       the section starts at 8px, 8px below the screen grid (0 x 1024px): sections start on whole screens (SR-2)  [768-rhythm-04-section-height.jpg]
+       fix: make every section above it exactly one or two screens tall, so this one starts on a whole screen
+  FAIL container-edges div.min-h-screen.flex  "Loading Teleios…"
+       a <div> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)  [768-rhythm-02-container-edges.jpg]
+       fix: build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing
+  FAIL container-edges div.min-h-screen.flex  "Loading Teleios…"
+       the section needs exactly one in-flow child .wrap (it has 1 in-flow child, 0 .wrap) (SR-6)  [768-rhythm-03-container-edges.jpg]
+       fix: build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing
+
+390x844  2 screens  9 FAIL  2 WARN
+  FAIL no-visual       div  "Application error: a client-side excepti"
+       no picture, effect or mock in this section; a feature section needs a visual  [390-01-no-visual.jpg]
+       fix: give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits
+  FAIL cta             div
+       the hero has no button (the nav's does not count)  [390-02-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  WARN heading-scale   (the page)
+       the page has no visible h1
+       fix: size headings by level: the h1 largest, one size per level, each level below the one above
+  FAIL hero-screen     div  "Application error: a client-side excepti"
+       the hero ends at 852px on a 844px screen, 8px below the fold: it ends at the fold, 1px either way (SR-1)  [390-rhythm-01-hero-screen.jpg]
+       fix: make the hero exactly one screen (height: 100svh, its content fitted inside), never taller or shorter
+  WARN section-height  div  "Application error: a client-side excepti"
+       the section starts at 8px, 8px below the screen grid (0 x 844px): sections start on whole screens (SR-2)  [390-rhythm-08-section-height.jpg]
+       fix: make every section above it exactly one or two screens tall, so this one starts on a whole screen
+  FAIL one-heading     div > div > h2  "Application error: a client-side excepti"
+       the hero holds an h2 (1): its heading is the h1, and an h2 opens the next section (SR-5)  [390-rhythm-02-one-heading.jpg]
+       fix: give each section one h2, first in its .wrap, and the hero only its h1
+  FAIL container-edges div  "Application error: a client-side excepti"
+       a <div> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)  [390-rhythm-03-container-edges.jpg]
+       fix: build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing
+  FAIL container-edges div  "Application error: a client-side excepti"
+       the section needs exactly one in-flow child .wrap (it has 1 in-flow child, 0 .wrap) (SR-6)  [390-rhythm-04-container-edges.jpg]
+       fix: build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing
+  FAIL container-edges div > div > h2  "Application error: a client-side excepti"
+       1 text block starts on a left line at x 39, 23px from the container's left: text starts on the container's left, or on one split line (x 175, 207, 239) (SR-6)  [390-rhythm-05-container-edges.jpg]
+       fix: start the text on the container's left, or on the one split line every split shares
+  FAIL container-edges div > div > h2  "Application error: a client-side excepti"
+       the h2 starts 23px right of the container's left: every h1 and h2 starts on it, 2px either way (SR-6)  [390-rhythm-06-container-edges.jpg]
+       fix: start the text on the container's left, or on the one split line every split shares
+  FAIL container-edges div > div > h2  "Application error: a client-side excepti"
+       "Application error: a client-side" is set centred across 358px, over half the 358px container: text that wide is set left (SR-6)  [390-rhythm-07-container-edges.jpg]
+       fix: set the text left (text-align: start)
+  (probe error) section-tile: no top-level sections (no main > *, no body > section)
+
+first screen at 1280, 1152, 1024, 896  0 FAIL  0 WARN
+
+the page at 320x640, walked for what runs past the screen's edge  0 FAIL
+
+checks
+  FAIL assets                 PASS shader-lint            PASS gl-fallback            
+  PASS empty-visual           PASS hero-fill              PASS flush                  
+  PASS placeholder            PASS sample-label           PASS caption                
+  PASS credit-wall            PASS nav                    PASS nav-covers             
+  PASS spill                  PASS off-viewport           PASS fold-card              
+  PASS hover-spill            PASS overlap-text           PASS collide                
+  PASS tap-size               PASS row-gap                PASS cut-text               
+  PASS fold-cut               PASS marquee                PASS scroll-linked          
+  PASS scroll-reveal          PASS pinned                 PASS loop-pause             
+  PASS reduced-motion         PASS hidden-content         PASS webgl                  
+  FAIL no-visual              PASS text-only              PASS card-visual            
+  PASS hidden-visual          PASS card-family            PASS card-layout            
+  PASS nesting                PASS effect-repeat          PASS ui-fit                 
+  PASS ui-centre              PASS dark-ground            PASS button-styles          
+  PASS button-shape           PASS same-action            PASS button-picture         
+  FAIL cta                    PASS pricing-tiers          FAIL copy-headline          
+  FAIL copy-fact              PASS copy-headings          PASS copy-buttons           
+  PASS copy-actions           WARN heading-scale          PASS stagger                
+  PASS top-stagger            PASS off-grid               PASS col-edge               
+  PASS right-edge             PASS centre-axis            PASS tilt                   
+  PASS contrast               PASS text-contrast          PASS body-size              
+  PASS busy-ground            PASS section-gaps           PASS proximity              
+  PASS hole                   PASS links                  PASS forms                  
+  PASS photo-upscale          PASS photo-set              PASS photo-credit           
+  PASS nav-family             PASS nav-labels             PASS link-styles            
+  PASS heading-align          PASS label-centre           PASS fake-button            
+  PASS stranded-action        PASS orphan                 PASS unit-break             
+  PASS tab-wrap               PASS effects-fit            PASS fade-cut               
+  PASS photo-weight           PASS copy-length            PASS nav-current            
+  PASS progress-bar           PASS photo-repeat           PASS button-contrast        
+  PASS photo-print            PASS grounds                PASS split-align            
+  PASS fact-agree             PASS fold-action            PASS action-count           
+  PASS one-screen             PASS hover                  PASS hover-move             
+  PASS product-shown          PASS same-object            PASS font-load              
+  PASS visual-caption         PASS visual-empty           PASS effect-kind            
+  PASS hero-enter             WARN moment-none            PASS street-number          
+  PASS postcode               PASS coordinates            PASS company-number         
+  PASS phone-number           FAIL hero-screen            WARN section-height         
+  PASS section-air            PASS one-section            FAIL one-heading            
+  FAIL container-edges        PASS row-lines              PASS split-pair             
+  PASS motion-layer           PASS count-text             PASS loop-cycle             
+  PASS section-tile           PASS empty-area             PASS a11y-name              
+  PASS img-alt                PASS field-label            PASS heading-order          
+  PASS tabindex               PASS focus-ring             PASS focus-visible          
+  PASS focus-hidden           PASS skip-link              PASS menu-toggle            
+  PASS lang                   PASS page-meta              PASS share-meta             
+  PASS action-repeat          PASS map-link               PASS open-now               
+  PASS assumed                PASS run-on                 PASS form-fields            
+  PASS form-send              
+
+total  27 FAIL  7 WARN  (crops and report.json in /tmp/taste-skill-consistency/localhost-3000)

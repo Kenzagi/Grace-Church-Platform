@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter, Instrument_Sans, DM_Mono } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,18 +11,52 @@ const inter = Inter({
   display: "swap",
 });
 
+// Dealt pairing "instrument" (taste-skill 2.5) — the pre-auth screens' faces.
+// Instrument Sans has a wght axis 400–700 (+ wdth 75–100, unused here); DM Mono
+// carries credential codes on the sign-in screen.
+const instrument = Instrument_Sans({
+  variable: "--font-instrument",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const dmMono = DM_Mono({
+  variable: "--font-dm-mono",
+  weight: ["400", "500"],
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Grace Community Church — Member Management Platform",
+  title: "Teleios — Church Administration Platform",
   description:
-    "Centralized member records, event scheduling, media library, attendance tracking, and event reminders for Grace Community Church.",
+    "Teleios keeps your church's member records, households, ministry groups, attendance, events and sermons in one audited system of record.",
   keywords: [
-    "Grace Community Church",
+    "Teleios",
+    "Church Administration",
     "Member Management",
-    "Church Platform",
     "Attendance",
     "Ministry",
   ],
-  authors: [{ name: "Grace Platform Team" }],
+  authors: [{ name: "Teleios" }],
+  openGraph: {
+    title: "Teleios — Church Administration Platform",
+    description:
+      "Member records, attendance, events and sermons in one audited system of record.",
+    siteName: "Teleios",
+    type: "website",
+    images: ["/og.png"],
+  },
+  twitter: {
+    card: "summary",
+    title: "Teleios — Church Administration Platform",
+    description:
+      "Member records, attendance, events and sermons in one audited system of record.",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#f7f9fa",
 };
 
 export default function RootLayout({
@@ -33,7 +67,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} antialiased bg-background text-foreground`}
+        className={`${inter.variable} ${instrument.variable} ${dmMono.variable} antialiased bg-background text-foreground`}
       >
         <Providers>
           {children}

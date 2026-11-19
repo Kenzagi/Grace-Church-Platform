@@ -71,7 +71,7 @@ export default function Page() {
           </div>
           <div className="flex items-center gap-3 text-muted-foreground">
             <Loader2 className="w-5 h-5 animate-spin" />
-            <span className="text-sm">Loading Grace Community Platform…</span>
+            <span className="text-sm">Loading Teleios…</span>
           </div>
         </div>
       </div>
@@ -96,7 +96,7 @@ export default function Page() {
             Retry connection
           </Button>
           <p className="text-caption mt-4 text-xs">
-            Grace Community Church · Member Management Platform
+            Teleios — Church Administration Platform
           </p>
         </div>
       </div>

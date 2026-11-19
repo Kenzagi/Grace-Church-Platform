@@ -1,4 +1,4 @@
-// Grace Community Church Member Management Platform — Prisma Schema
+// Teleios — Church Administration Platform — Prisma Schema
 // Per PRD v2.0 §3.3 (14 base models) + §4.2.1 Household + §4.2.3 Volunteer scheduling
 
 generator client {

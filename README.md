@@ -1,4 +1,4 @@
-# Grace Community Church — Member Management Platform
+# Teleios — Church Administration Platform
 
 A full-featured church management system built with **Next.js 16**, **React 19**, **TypeScript**, **Tailwind CSS v4**, **shadcn/ui**, and **Prisma** with PostgreSQL.
 
@@ -179,4 +179,4 @@ docs/design/               # Architecture, members-workflow and ER diagrams + PD
 
 ## License
 
-Private — Grace Community Church.
+Private — Teleios.
