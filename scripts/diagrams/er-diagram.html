@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --text: #1b1c1d; --sub: #5c6b73; --muted: #838a8d;
+    --bg: #ffffff; --border: #c0ccd2; --accent: #227fad; --mid: #405f6f;
+    --head: #f0f4f8; --head2: #e8edf2; --connector: #94a3b8;
+  }
+  body {
+    font-family: -apple-system, 'Segoe UI', 'Liberation Sans', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased;
+  }
+  #root { width: fit-content; margin: 0 auto; padding: 52px 48px 44px; background: var(--bg); position: relative; }
+
+  .title { font-size: 42px; font-weight: 800; text-align: center; letter-spacing: -0.5px; }
+  .subtitle { font-size: 22px; color: var(--sub); text-align: center; margin-top: 10px; margin-bottom: 42px; }
+
+  .canvas { position: relative; width: 1640px; height: 1330px; }
+  svg.wires { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+  svg.wires path, svg.wires line { stroke: var(--connector); stroke-width: 2.5; fill: none; }
+  svg.wires text { font-size: 19px; fill: var(--sub); font-weight: 600; font-family: inherit; }
+
+  .tbl { position: absolute; background: #ffffff; border: 2px solid var(--border); border-radius: 10px;
+         box-shadow: 0 1px 3px rgba(0,0,0,0.05); z-index: 1; overflow: hidden; }
+  .tbl-name { font-size: 22px; font-weight: 800; color: var(--mid); background: var(--head);
+              padding: 10px 16px 9px; border-bottom: 1.5px solid var(--border); }
+  .tbl-name .dom { display: block; font-size: 15px; font-weight: 600; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 2px; }
+  .flds { padding: 10px 16px 12px; }
+  .fld { font-size: 18.5px; color: var(--text); line-height: 1.55; }
+  .fld k { color: var(--sub); font-style: normal; }          /* key annotation */
+  .fld b { color: var(--mid); font-weight: 700; }
+  .tbl.hub { border: 3px solid var(--accent); background: #f5f9fc; }
+  .tbl.hub .tbl-name { background: #e3eef6; color: #17466b; font-size: 25px; }
+  .joinchip { font-size: 16.5px; color: var(--sub); background: var(--head2); border-radius: 5px;
+              padding: 3px 9px; display: inline-block; margin: 3px 4px 0 0; }
+
+  .footnote { width: 1640px; margin-top: 26px; font-size: 19px; color: var(--sub); line-height: 1.55;
+              background: #f8fafc; border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 22px; }
+  .footnote b { color: var(--mid); }
+</style>
+</head>
+<body>
+<div id="root">
+  <div class="title">Data Model &mdash; Core Tables &amp; Relations</div>
+  <div class="subtitle">Prisma / SQL schema map &middot; Member is the hub every church activity points back to</div>
+
+  <div class="canvas">
+    <svg class="wires" id="wires">
+      <defs>
+        <marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#94a3b8"></polygon>
+        </marker>
+      </defs>
+    </svg>
+
+    <!-- LEFT COLUMN -->
+    <div class="tbl" id="org" style="left:0; top:0; width:360px;">
+      <div class="tbl-name"><span class="dom">Tenant root</span>Organization</div>
+      <div class="flds">
+        <div class="fld"><b>id</b> <k>pk</k> &middot; slug <k>unique</k></div>
+        <div class="fld">name &middot; branding &middot; settings</div>
+      </div>
+    </div>
+
+    <div class="tbl" id="admin" style="left:0; top:250px; width:360px;">
+      <div class="tbl-name"><span class="dom">Staff auth</span>AdminUser</div>
+      <div class="flds">
+        <div class="fld"><b>id</b> <k>pk</k> &middot; orgId <k>fk</k></div>
+        <div class="fld">email <k>unique</k> &middot; name</div>
+        <div class="fld">role <k>admin | editor | viewer</k></div>
+        <div class="fld">passwordHash &middot; lastLoginAt</div>
+      </div>
+    </div>
+
+    <div class="tbl" id="audit" style="left:0; top:505px; width:360px;">
+      <div class="tbl-name"><span class="dom">Traceability</span>AuditLog</div>
+      <div class="flds">
+        <div class="fld"><b>orgId</b> <k>fk</k> &middot; adminId <k>fk, nullable</k></div>
+        <div class="fld">action <k>e.g. member.create</k></div>
+        <div class="fld">entity &middot; entityId &middot; detail &middot; ip</div>
+      </div>
+    </div>
+
+    <div class="tbl" id="household" style="left:0; top:740px; width:360px;">
+      <div class="tbl-name"><span class="dom">People</span>Household</div>
+      <div class="flds">
+        <div class="fld"><b>id</b> <k>pk</k> &middot; orgId <k>fk</k></div>
+        <div class="fld">name &middot; address</div>
+        <div class="fld">headMemberId <k>fk &rarr; Member</k></div>
+      </div>
+    </div>
+
+    <div class="tbl" id="tag" style="left:0; top:1000px; width:360px;">
+      <div class="tbl-name"><span class="dom">Labeling</span>Tag</div>
+      <div class="flds">
+        <div class="fld"><b>id</b> <k>pk</k> &middot; orgId <k>fk</k> &middot; name</div>
+        <div class="fld">type <k>member | media | event</k></div>
+        <div class="fld"><span class="joinchip">MemberTag</span><span class="joinchip">MediaTag</span><span class="joinchip">EventTag</span></div>
+      </div>
+    </div>
+
+    <!-- CENTER HUB -->
+    <div class="tbl hub" id="member" style="left:560px; top:330px; width:420px;">
+      <div class="tbl-name"><span class="dom">Core person record</span>Member</div>
+      <div class="flds">
+        <div class="fld"><b>id</b> <k>pk</k> &middot; orgId <k>fk</k></div>
+        <div class="fld">firstName &middot; lastName</div>
+        <div class="fld">email <k>indexed</k> &middot; phone &middot; address</div>
+        <div class="fld">gender &middot; maritalStatus <k>required</k></div>
+        <div class="fld">status <k>active | inactive | visitor</k></div>
+        <div class="fld">dateOfBirth &middot; joinedAt &middot; photoUrl</div>
+        <div class="fld">householdId <k>fk &rarr; Household</k></div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="tbl" id="submission" style="left:1200px; top:0; width:380px;">
+      <div class="tbl-name"><span class="dom">Media pipeline</span>Submission</div>
+      <div class="flds">
+        <div class="fld"><b>id</b> <k>pk</k> &middot; orgId <k>fk</k></div>
+        <div class="fld">memberId <k>fk &rarr; Member</k></div>
+        <div class="fld">mediaItemId <k>fk, unique &rarr; MediaItem</k></div>
+        <div class="fld">status <k>pending | approved | rejected</k></div>
+        <div class="fld">note &middot; reviewerId <k>fk &rarr; AdminUser</k></div>
+      </div>
+    </div>
+
+    <div class="tbl" id="media" style="left:1200px; top:295px; width:380px;">
+      <div class="tbl-name"><span class="dom">Media pipeline</span>MediaItem</div>
+      <div class="flds">
+        <div class="fld"><b>id</b> <k>pk</k> &middot; orgId <k>fk</k></div>
+        <div class="fld">title &middot; type <k>sermon | video | doc | audio</k></div>
+        <div class="fld">url &middot; duration &middot; date</div>
+        <div class="fld">status <k>draft &rarr; published | archived</k></div>
+        <div class="fld">speakerId <k>fk &rarr; Member</k></div>
+        <div class="fld">seriesId <k>fk &rarr; SermonSeries</k></div>
+      </div>
+    </div>
+
+    <div class="tbl" id="series" style="left:1200px; top:615px; width:380px;">
+      <div class="tbl-name"><span class="dom">Media pipeline</span>SermonSeries</div>
+      <div class="flds">
+        <div class="fld"><b>id</b> <k>pk</k> &middot; orgId <k>fk</k></div>
+        <div class="fld">name &middot; description</div>
+      </div>
+    </div>
+
+    <div class="tbl" id="membership" style="left:1200px; top:800px; width:380px;">
+      <div class="tbl-name"><span class="dom">Community life</span>Membership <k style="font-size:15px;color:var(--muted)">join</k></div>
+      <div class="flds">
+        <div class="fld">memberId + groupId <k>unique pair</k></div>
+        <div class="fld">role <k>leader | member | volunteer</k></div>
+      </div>
+    </div>
+
+    <div class="tbl" id="group" style="left:1200px; top:965px; width:380px;">
+      <div class="tbl-name"><span class="dom">Community life</span>Group</div>
+      <div class="flds">
+        <div class="fld"><b>id</b> <k>pk</k> &middot; orgId <k>fk</k></div>
+        <div class="fld">name &middot; category <k>ministry | smallgroup | committee</k></div>
+      </div>
+    </div>
+
+    <div class="tbl" id="attendance" style="left:1200px; top:1130px; width:380px;">
+      <div class="tbl-name"><span class="dom">Community life</span>Attendance <k style="font-size:15px;color:var(--muted)">join</k></div>
+      <div class="flds">
+        <div class="fld">memberId <k>fk &rarr; Member</k> &middot; eventId <k>fk &rarr; Event</k></div>
+        <div class="fld">status &middot; recordedAt</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    <b>Not drawn to keep the map readable:</b> Event (title, category, startTime) sits behind Attendance; VolunteerRole &rarr; VolunteerAssignment links members to roles per event; Reminder stores scheduled nudges.
+    Every table shown also carries <b>orgId &rarr; Organization</b> &mdash; the tenant column that all queries filter on. Deletions cascade sensibly (e.g. deleting a member removes their submissions; deleting a series only detaches media).
+  </div>
+</div>
+
+<script>
+  function R(el) { return el.getBoundingClientRect(); }
+  function draw() {
+    const svg = document.getElementById('wires');
+    const c = document.querySelector('.canvas').getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${c.width} ${c.height}`);
+    // connections: [fromId, toId, label, exitT, entryT, dashed, side, xmOff]
+    // side: 'L' = exit source right edge into target left edge; 'V' = vertical within column
+    const conns = [
+      // [from, to, label, exitT, entryT, dashed, xmOff]  — all horizontal arrows
+      // exit the source RIGHT edge and enter the target LEFT edge.
+      ['org',        'member',     '1 : N',            0.5, 0.15, false, -34],
+      ['household',  'member',     'N : 1',            0.5, 0.72, false,   0],
+      ['tag',        'member',     'M : N',            0.5, 0.95, true,   34],
+      ['admin',      'audit',      '1 : N writes',     0.5, 0.5,  false,  'V'],
+      ['member',     'submission', '1 : N submits',    0.12, 0.5, false,  20],
+      ['member',     'media',      'N : 1 speaker of', 0.38, 0.5, false,  45],
+      ['member',     'membership', '1 : N joins',      0.65, 0.5, false,  70],
+      ['member',     'attendance', '1 : N attends',    0.90, 0.5, false,  95],
+      ['submission', 'media',      '1 : 1 review',     0.5, 0.5,  false,  'V'],
+      ['media',      'series',     'N : 1',            0.5, 0.5,  false,  'V'],
+      ['membership', 'group',      'N : 1',            0.5, 0.5,  false,  'V'],
+    ];
+    conns.forEach(([f, t, label, exitT, entryT, dashed, xmOff]) => {
+      const fe = document.getElementById(f), te = document.getElementById(t);
+      const fr = R(fe), tr = R(te);
+      let x1, y1, x2, y2, d;
+      if (xmOff === 'V') {
+        x1 = fr.left + fr.width / 2 - c.left; y1 = fr.bottom - c.top + 2;
+        x2 = tr.left + tr.width / 2 - c.left; y2 = tr.top - c.top - 3;
+        d = `M ${x1} ${y1} L ${x2} ${y2}`;
+      } else {
+        x1 = fr.right - c.left; y1 = fr.top - c.top + fr.height * exitT;
+        x2 = tr.left - c.left;  y2 = tr.top - c.top + tr.height * entryT;
+        const xm = (x1 + x2) / 2 + xmOff;
+        d = `M ${x1} ${y1} L ${xm} ${y1} L ${xm} ${y2} L ${x2} ${y2}`;
+      }
+      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      p.setAttribute('d', d);
+      p.setAttribute('marker-end', 'url(#ah)');
+      if (dashed) p.setAttribute('stroke-dasharray', '7 6');
+      svg.appendChild(p);
+      if (label) {
+        const tx = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        if (xmOff === 'V') {
+          tx.setAttribute('x', x1 + 12); tx.setAttribute('y', (y1 + y2) / 2 + 5);
+        } else {
+          // label just below the horizontal exit segment, at the source side
+          tx.setAttribute('x', x1 + 16);
+          tx.setAttribute('y', y1 + 24);
+          tx.setAttribute('text-anchor', 'start');
+        }
+        tx.textContent = label;
+        svg.appendChild(tx);
+      }
+    });
+  }
+  window.addEventListener('load', () => setTimeout(draw, 80));
+</script>
+</body>
+</html>
