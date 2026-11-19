@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --text: #1b1c1d; --sub: #5c6b73; --muted: #838a8d;
+    --bg: #ffffff; --surface: #f5f5f6; --card: #e8eaeb;
+    --border: #c0ccd2; --accent: #227fad; --mid: #405f6f;
+    --pale1: #f0f4f8; --pale2: #e8edf2; --pale3: #e0e7ef;
+    --warn: #9d824c; --err: #8f4e48; --ok: #489260;
+    --connector: #94a3b8;
+  }
+  body {
+    font-family: -apple-system, 'Segoe UI', 'Liberation Sans', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+  #root { width: fit-content; min-width: 1240px; margin: 0 auto; padding: 52px 48px; background: var(--bg); }
+
+  .title { font-size: 42px; font-weight: 800; text-align: center; letter-spacing: -0.5px; }
+  .subtitle { font-size: 22px; color: var(--sub); text-align: center; margin-top: 10px; margin-bottom: 40px; }
+
+  .band { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 24px 28px 26px; }
+  .band-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; }
+  .band-title { font-size: 28px; font-weight: 700; color: var(--mid); }
+  .band-file { font-size: 19px; color: var(--muted); font-family: 'DejaVu Sans Mono', 'Liberation Mono', monospace; }
+  .band-body { display: flex; gap: 20px; flex-wrap: wrap; }
+
+  .node {
+    background: #ffffff; border: 2px solid var(--border); border-radius: 10px;
+    padding: 16px 20px; flex: 1 1 300px; min-width: 280px; max-width: 100%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .node.accented { border-color: var(--accent); background: #f5f9fc; }
+  .node-title { font-size: 24px; font-weight: 700; line-height: 1.3; }
+  .node-sub { font-size: 20px; font-weight: 600; color: var(--accent); margin-top: 2px; }
+  .node-desc { font-size: 21px; color: var(--sub); line-height: 1.5; margin-top: 6px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; max-width: 100%; }
+  .chip {
+    font-size: 19px; color: var(--mid); background: var(--pale1);
+    border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px;
+    flex: 0 1 auto; min-width: 0; overflow-wrap: break-word;
+  }
+  .chip.public { background: #fff7ed; border-color: #e5c99a; color: #7a5c1e; }
+  .chip.sec { background: #eef6f1; border-color: #b3d2bd; color: #2f5e40; }
+
+  .pipeline { display: flex; flex-wrap: wrap; gap: 0; align-items: stretch; margin-top: 14px; max-width: 100%; }
+  .pstep {
+    flex: 1 1 auto; min-width: 150px; max-width: 100%;
+    background: #ffffff; border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; text-align: center; position: relative; z-index: 1;
+  }
+  .pstep + .pstep { margin-left: 34px; }
+  .pstep + .pstep::before {
+    content: '\2192'; position: absolute; left: -26px; top: 50%; transform: translateY(-50%);
+    color: var(--connector); font-size: 24px; font-weight: 700;
+  }
+  .p-name { font-size: 20px; font-weight: 700; color: var(--text); }
+  .p-fail { font-size: 18px; color: var(--err); margin-top: 3px; font-weight: 600; }
+
+  .arrow-row { text-align: center; color: var(--connector); font-size: 34px; line-height: 1.15; margin: 6px 0; }
+  .arrow-note { font-size: 19px; color: var(--muted); display: block; margin-top: 0px; }
+
+  .invariants {
+    margin-top: 34px; background: var(--pale2); border: 1.5px solid var(--border);
+    border-left: 5px solid var(--mid); border-radius: 12px; padding: 20px 26px;
+  }
+  .inv-title { font-size: 24px; font-weight: 700; color: var(--mid); margin-bottom: 12px; }
+  .inv-grid { display: flex; flex-wrap: wrap; gap: 12px 26px; }
+  .inv-item { flex: 1 1 30%; min-width: 300px; font-size: 20px; color: var(--text); line-height: 1.45; }
+  .inv-item b { color: var(--mid); }
+</style>
+</head>
+<body>
+<div id="root">
+  <div class="title">System Architecture &mdash; Grace Community Church Platform</div>
+  <div class="subtitle">Next.js 16 full-stack monolith &middot; request journey from click to database &middot; v2.0, Oct 2026</div>
+
+  <!-- BAND 1: CLIENTS -->
+  <div class="band">
+    <div class="band-head"><span class="band-title">1 &middot; Clients (browser)</span><span class="band-file">React 19 &middot; single SPA shell + public portal</span></div>
+    <div class="band-body">
+      <div class="node accented">
+        <div class="node-title">Admin Web App</div>
+        <div class="node-sub">/ &mdash; sign-in gated SPA</div>
+        <div class="node-desc">Ten sections behind one sidebar: Dashboard, Members, Households, Groups, Events, Attendance, Media Library, Submissions, Volunteers, Audit Log.</div>
+        <div class="chips"><span class="chip">HMAC session cookie</span><span class="chip">light / dark theme</span><span class="chip">toast + dialog UX</span></div>
+      </div>
+      <div class="node accented">
+        <div class="node-title">Member Portal</div>
+        <div class="node-sub">/portal &mdash; public, no login</div>
+        <div class="node-desc">Members submit sermons &amp; testimonies for review and track status by email; their household is auto-resolved from the directory.</div>
+        <div class="chips"><span class="chip public">public route</span><span class="chip">rate-limited per IP</span><span class="chip">no data enumeration</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row">&#8595;<span class="arrow-note">every /api/* request</span></div>
+
+  <!-- BAND 2: EDGE -->
+  <div class="band" style="background:#f0f4f8;">
+    <div class="band-head"><span class="band-title">2 &middot; Edge Middleware</span><span class="band-file">src/proxy.ts &middot; runs before every API route</span></div>
+    <div class="band-body">
+      <div class="node" style="border-color:#9db4c0;">
+        <div class="node-title">Session gate &mdash; defense in depth, layer 1</div>
+        <div class="node-desc">Cryptographically verifies the HMAC-SHA256 signature and 7-day expiry of the <b>gc_session</b> cookie using Web Crypto in the edge runtime.</div>
+        <div class="chips">
+          <span class="chip public">allow-list: /api/auth/login &middot; /api/auth/me &middot; /api/portal/*</span>
+          <span class="chip sec">invalid or expired &rarr; 401 before hitting any handler</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row">&#8595;</div>
+
+  <!-- BAND 3: API -->
+  <div class="band" style="background:#e8edf2;">
+    <div class="band-head"><span class="band-title">3 &middot; API Route Handlers</span><span class="band-file">Next.js server routes &middot; 15 resource groups</span></div>
+    <div class="chips" style="margin:0 0 6px;">
+      <span class="chip">auth</span><span class="chip">members</span><span class="chip">households</span><span class="chip">groups</span>
+      <span class="chip">events</span><span class="chip">attendance</span><span class="chip">media</span><span class="chip">series</span>
+      <span class="chip">submissions</span><span class="chip">portal</span><span class="chip">volunteers</span><span class="chip">tags</span>
+      <span class="chip">reminders</span><span class="chip">stats</span><span class="chip">audit-logs</span>
+    </div>
+    <div class="node" style="flex-basis:100%; background:#fbfcfd;">
+      <div class="node-title" style="font-size:22px; color:var(--mid);">Guard pipeline &mdash; every write request passes in this order</div>
+      <div class="pipeline">
+        <div class="pstep"><div class="p-name">Rate limit</div><div class="p-fail">429 + Retry-After</div></div>
+        <div class="pstep"><div class="p-name">Session + RBAC</div><div class="p-fail">401 / 403</div></div>
+        <div class="pstep"><div class="p-name">Zod validation</div><div class="p-fail">400 field errors</div></div>
+        <div class="pstep"><div class="p-name">Org scoping</div><div class="p-fail">400 cross-tenant FK</div></div>
+        <div class="pstep"><div class="p-name">Handler + Prisma</div><div class="p-fail">transaction</div></div>
+        <div class="pstep"><div class="p-name">Audit write</div><div class="p-fail">never blocks reply</div></div>
+      </div>
+      <div class="chips">
+        <span class="chip">withErrorHandler &rarr; friendly Prisma P2002 / P2025 messages</span>
+        <span class="chip">in-memory sliding window (Redis on the production plan)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row">&#8595;</div>
+
+  <!-- BAND 4: DATA -->
+  <div class="band">
+    <div class="band-head"><span class="band-title">4 &middot; Data Layer</span><span class="band-file">Prisma ORM &rarr; SQLite file (dev) &middot; Postgres staged for production</span></div>
+    <div class="band-body">
+      <div class="node">
+        <div class="node-title">20+ models, one tenant column</div>
+        <div class="node-desc">Every org-scoped table carries <b>orgId</b>; all queries filter by the session's org, so churches never see each other's data.</div>
+        <div class="chips"><span class="chip">Member &middot; Household &middot; Group</span><span class="chip">MediaItem &middot; Submission</span><span class="chip">Event &middot; Attendance</span></div>
+      </div>
+      <div class="node">
+        <div class="node-title">Photos as base64 in-DB</div>
+        <div class="node-desc">Uploads are resized to 400&times;400 with sharp (lazy-loaded, graceful fallback) and stored in the row &mdash; zero external storage today.</div>
+        <div class="chips"><span class="chip sec">blob storage = production-phase item</span></div>
+      </div>
+      <div class="node">
+        <div class="node-title">AuditLog table</div>
+        <div class="node-desc">One row per mutation: who, what, entity, IP &mdash; portal submissions record a null admin on purpose.</div>
+        <div class="chips"><span class="chip">surfaced in the Audit Log section</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVARIANTS -->
+  <div class="invariants">
+    <div class="inv-title">Cross-cutting invariants</div>
+    <div class="inv-grid">
+      <div class="inv-item"><b>Sessions:</b> stateless HMAC-signed cookie, httpOnly, SameSite=Lax, secure in production, 7-day expiry.</div>
+      <div class="inv-item"><b>Roles:</b> admin (full) &middot; editor (read + write) &middot; viewer (read-only) &mdash; enforced inside handlers.</div>
+      <div class="inv-item"><b>Tenancy:</b> every foreign key from the client is re-checked against the session's org before write.</div>
+      <div class="inv-item"><b>Validation:</b> Zod schemas on every input &mdash; portal URLs must be http(s), durations capped.</div>
+      <div class="inv-item"><b>Audit:</b> every mutation writes an audit row; exports and reviews are audited too.</div>
+      <div class="inv-item"><b>Secrets:</b> SESSION_SECRET required at boot &mdash; the server refuses to start without it.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

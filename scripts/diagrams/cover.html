@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  /* ━━ Cascade Palette (design_engine.py palette-cascade --intent cold --mode minimal --seed 11) ━━ */
+  :root {
+    --c-bg: #ffffff;
+    --c-accent: #227fad;
+    --c-text: #1b1c1d;
+    --c-muted: #838a8d;
+    --c-mid: #405f6f;
+    --c-surface: #e8eaeb;
+  }
+  @page { size: 794px 1123px; margin: 0; }
+  @media screen {
+    html { height: auto; display: flex; justify-content: center; min-height: 100vh; background: var(--c-bg); }
+    body { transform-origin: top center; scale: min(1, calc(100vw / 794), calc(100vh / 1123)); margin: 0 auto; }
+  }
+  html, body {
+    margin: 0; padding: 0;
+    width: 794px; height: 1123px;
+    background: var(--c-bg);
+    font-family: 'Carlito', 'Liberation Sans', 'DejaVu Sans', sans-serif;
+  }
+  .cover {
+    position: relative;
+    width: 794px; height: 1123px;
+    border: none; outline: none; box-shadow: none;
+  }
+  /* ── Layer 1: background grid (clipped) ── */
+  .layer-grid {
+    position: absolute; inset: 0;
+    overflow: hidden;
+    z-index: 1;
+    background-image:
+      repeating-linear-gradient(to right,  rgba(34,127,173,0.05) 0, rgba(34,127,173,0.05) 0.5px, transparent 0.5px, transparent 50px),
+      repeating-linear-gradient(to bottom, rgba(34,127,173,0.05) 0, rgba(34,127,173,0.05) 0.5px, transparent 0.5px, transparent 50px);
+  }
+  /* ── Layer 2: structure — ultra-thick left anchor line ── */
+  .layer-structure { position: absolute; inset: 0; z-index: 2; }
+  .anchor-line {
+    position: absolute;
+    left: 95px; top: 112px;
+    width: 8px; height: 899px;   /* 0.1H -> 0.9H */
+    background: var(--c-accent);
+  }
+  /* ── Layer 3: content ── */
+  .layer-content { position: absolute; inset: 0; z-index: 3; }
+  .kicker {
+    position: absolute;
+    left: 151px; top: 168px;
+    font-size: 16pt; font-weight: 400;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--c-accent);
+    opacity: 0.72;
+  }
+  .hero {
+    position: absolute;
+    left: 151px; top: 337px;
+    font-size: 48pt; font-weight: 700;
+    line-height: 1.15;
+    color: var(--c-text);
+    max-width: 560px;
+  }
+  .summary {
+    position: absolute;
+    left: 151px; top: 561px;
+    font-size: 17pt; font-weight: 400;
+    line-height: 1.6;
+    color: var(--c-mid);
+    opacity: 0.9;
+    max-width: 476px;
+  }
+  .meta {
+    position: absolute;
+    left: 151px; top: 842px;
+    font-size: 17pt; font-weight: 400;
+    line-height: 1.7;
+    color: var(--c-text);
+  }
+  .meta .muted { color: var(--c-muted); }
+</style>
+</head>
+<body>
+  <div class="cover">
+    <div class="layer-grid"></div>
+    <div class="layer-structure">
+      <div class="anchor-line"></div>
+    </div>
+    <div class="layer-content">
+      <div class="kicker">System Design Report</div>
+      <div class="hero">Grace Community<br>Church Platform</div>
+      <div class="summary">
+        A technical walkthrough of the platform: the multi-tenant
+        architecture, the Members section workflow, and the data model
+        that connects them. A shared reference for the team.
+      </div>
+      <div class="meta">
+        Prepared for the Ministry Team &amp; Stakeholders<br>
+        <span class="muted">Version 2.0 &nbsp;&middot;&nbsp; October 2026</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
