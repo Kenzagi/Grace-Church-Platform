@@ -3,6 +3,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
+import { TeleiosLogo } from "@/components/TeleiosLogo";
 import {
   Tooltip,
   TooltipContent,
@@ -22,7 +23,6 @@ import {
   ScrollText,
   LogOut,
   Search,
-  Church,
   Menu,
   X,
   PanelLeftClose,
@@ -264,7 +264,7 @@ function SidebarContent({
         )}
       >
         <div className="w-8 h-8 rounded-sm bg-primary text-primary-foreground flex items-center justify-center shrink-0">
-          <Icon as={Church} boundingBox={false} size={20} />
+          <TeleiosLogo size={22} />
         </div>
         {!collapsed && (
           <div className="min-w-0">

@@ -384,7 +384,7 @@ function ReminderDialog({ event, onClose }: { event: EventItem; onClose: () => v
           </div>
         ) : (
           <div className="py-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 rounded-full bg-accent-green/15 text-accent-green flex items-center justify-center mx-auto mb-4">
               <Icon as={Bell} boundingBox={false} size={26} />
             </div>
             <h3 className="text-title text-primary">Reminders dispatched</h3>

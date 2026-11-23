@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
+import { TeleiosLogo } from "@/components/TeleiosLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiRequest } from "@/hooks/use-fetch";
 import { statusClass, formatDate } from "@/lib/format";
 import {
-  Church, CheckCircle2, Mail, Loader2, ArrowRight, ArrowLeft,
+  CheckCircle2, Mail, Loader2, ArrowRight, ArrowLeft,
   FileText, Headphones, Video, Inbox, User, Home,
 } from "@/components/icons";
 import type { AppIcon } from "@/components/icons";
@@ -56,7 +57,7 @@ export default function PortalPage() {
       <header className="h-16 border-b border-border bg-surface flex items-center px-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-sm bg-primary text-primary-foreground flex items-center justify-center">
-            <Icon as={Church} boundingBox={false} size={18} />
+            <TeleiosLogo size={20} variant="mono" />
           </div>
           <div>
             <p className="text-sm font-medium text-primary">Teleios</p>

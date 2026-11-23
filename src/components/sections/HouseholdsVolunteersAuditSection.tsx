@@ -331,7 +331,7 @@ export function VolunteersSection() {
                   </div>
                   <div className="flex items-start gap-1">
                     <div className="text-right">
-                      <p className={cn("text-2xl font-medium tabular-nums", full ? "text-emerald-400" : "text-primary")}>{assigned}<span className="text-muted-foreground text-sm">/{effectiveCapacity(r)}</span></p>
+                      <p className={cn("text-2xl font-medium tabular-nums", full ? "text-accent-green" : "text-primary")}>{assigned}<span className="text-muted-foreground text-sm">/{effectiveCapacity(r)}</span></p>
                       <p className="text-caption">filled</p>
                     </div>
                     <Button size="sm" variant="ghost" className="h-7 w-7 p-0" aria-label={`Edit ${r.name}`} onClick={() => setEditingRole(r)}>

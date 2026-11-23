@@ -52,6 +52,12 @@
   --color-surface-alt: var(--surface-alt);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  /* Trinity accent palette (#FF5714 / #16DB65 / #391463) — accents only,
+     never the primary */
+  --color-accent-orange: var(--accent-orange);
+  --color-accent-green: var(--accent-green);
+  --color-accent-purple: var(--accent-purple);
+  --color-accent-purple-soft: var(--accent-purple-soft);
   /* 4px spacing grid — explicit multiples of 4 */
   --spacing-1: 4px;
   --spacing-2: 8px;
@@ -104,8 +110,14 @@
   --chart-1: #eeeeee;
   --chart-2: #b5b5b5;
   --chart-3: #6a6a6a;
-  --chart-4: #d4a017;
-  --chart-5: #2e7d6b;
+  --chart-4: #FF5714;
+  --chart-5: #16DB65;
+  /* Trinity accents — soft purple lifts #391463 for text/strokes on dark
+     (FF5714 5.49:1, 16DB65 9.41:1, 9D7BFF 5.56:1 on #1a1a1a) */
+  --accent-orange: #FF5714;
+  --accent-green: #16DB65;
+  --accent-purple: #391463;
+  --accent-purple-soft: #9D7BFF;
   --sidebar: #1a1a1a;
   --sidebar-foreground: #eeeeee;
   --sidebar-primary: #ffffff;
@@ -144,8 +156,12 @@
   --chart-1: #eeeeee;
   --chart-2: #b5b5b5;
   --chart-3: #6a6a6a;
-  --chart-4: #d4a017;
-  --chart-5: #2e7d6b;
+  --chart-4: #FF5714;
+  --chart-5: #16DB65;
+  --accent-orange: #FF5714;
+  --accent-green: #16DB65;
+  --accent-purple: #391463;
+  --accent-purple-soft: #9D7BFF;
   --sidebar: #1a1a1a;
   --sidebar-foreground: #eeeeee;
   --sidebar-primary: #ffffff;
@@ -158,10 +174,11 @@
 
 /* ── Teleios light scope (pre-auth screens) ───────────────────────────────
    The dealt style (taste-skill 2.5: palette cool-white-slate — frost ground
-   #f7f9fa, slate ink #1f3038, deep teal accent #0d7480; type "instrument" —
-   Instrument Sans + DM Mono; radius soft) applied to the sign-in screen only.
-   The signed-in app above keeps the Linear-dark tokens. All contrast pairs
-   verified ≥ 4.5:1 (ink 12.9:1, muted 5.2:1, white-on-teal 5.5:1). */
+   #f7f9fa, slate ink #1f3038, deep Trinity-purple accent #391463; type
+   "instrument" — Instrument Sans + DM Mono; radius soft) applied to the
+   sign-in screen only. The signed-in app above keeps the Linear-dark tokens.
+   Contrast pairs verified: ink 12.9:1 on frost, muted 5.2:1, white-on-purple
+   14.44:1, purple-on-white 14.44:1. */
 .teleios-light {
   --background: #f7f9fa;
   --foreground: #1f3038;
@@ -171,7 +188,7 @@
   --card-foreground: #1f3038;
   --popover: #ffffff;
   --popover-foreground: #1f3038;
-  --primary: #0d7480;
+  --primary: #391463;
   --primary-foreground: #ffffff;
   --secondary: #ecf0f2;
   --secondary-foreground: #1f3038;
@@ -184,11 +201,17 @@
   --destructive: #c23b28;
   --border: rgb(31 48 56 / 10%);
   --input: rgb(31 48 56 / 16%);
-  --ring: #0d7480;
+  --ring: #391463;
   --border-strong: rgb(31 48 56 / 16%);
   --border-subtle: rgb(31 48 56 / 10%);
   --text-muted: #43515a;
   --text-secondary: #43515a;
+  /* Trinity accents — same hues as dark scope; on light surfaces green and
+     orange are fill/border-only (too light as text on white) */
+  --accent-orange: #FF5714;
+  --accent-green: #16DB65;
+  --accent-purple: #391463;
+  --accent-purple-soft: #9D7BFF;
   font-family: var(--font-instrument), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 /* Focus: solid ink outline over a white halo — visible on the frost ground,

@@ -340,7 +340,7 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
                   <li key={c.roleName}>
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-sm font-medium text-primary">{c.roleName}</span>
-                      <span className={`text-xs tabular-nums ${full ? "text-emerald-600 font-medium" : "text-muted-foreground"}`}>
+                      <span className={`text-xs tabular-nums ${full ? "text-accent-green font-medium" : "text-muted-foreground"}`}>
                         {c.assigned}/{c.capacity}
                       </span>
                     </div>
