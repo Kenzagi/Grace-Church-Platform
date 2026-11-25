@@ -69,13 +69,13 @@ export function MediaSection() {
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              <Icon as={Search} boundingBox={false} size={18} />
+              <Icon as={Search} boundingBox={false} />
             </span>
-            <input
+            <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search sermons and media…"
-              className="w-full h-10 pl-10 pr-4 rounded-sm border border-input bg-surface text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+              className="pl-10"
             />
           </div>
           <Select value={typeFilter} onValueChange={setTypeFilter}>

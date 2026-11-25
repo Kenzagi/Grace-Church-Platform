@@ -1,191 +1,133 @@
 /**
  * Icon barrel — the ONE import point for iconography.
  *
- * Style spec: Nucleo icons (outline, 24px grid) rendered at 1px stroke.
- * The 1px stroke is enforced globally in globals.css (svg[viewBox="0 0 24 24"]
- * rules override the SVG strokeWidth attribute), so call sites never pass it.
+ * Style spec: Lucide (lucide-extended language) — outline, 24px grid,
+ * rendered at 1.5px stroke. The stroke is enforced globally in globals.css
+ * (svg.lucide rule) and by <Icon /> (strokeWidth=1.5 default), so call sites
+ * never pass it.
  *
- * Everything re-exports from `nucleo-core-essential-outline-24` (official free
- * Nucleo set) under the app's historical names — call sites only ever import
- * from this barrel, never from the package directly. The few names the
- * essential set lacks (radio dot, ellipsis, spinner, drag grip) are defined
- * here as minimal primitives on the same 24px grid.
+ * Everything re-exports from `lucide-react` under the app's historical names —
+ * call sites only ever import from this barrel, never from the package
+ * directly. Renamed Lucide icons (AlertCircle → CircleAlert, Home → House,
+ * MoreHorizontal → Ellipsis, Loader2 → LoaderCircle, Grid → LayoutGrid,
+ * CheckCircle2 → CircleCheckBig, AlertTriangle → TriangleAlert) keep their old
+ * aliases here. The only custom primitive left is the filled radio/menu dot.
  *
- * To add an icon: add ONE alias line here (or a primitive if the set lacks
- * it), then import it from "@/components/icons".
+ * To add an icon: add ONE alias line here, then import it from "@/components/icons".
  */
 import * as React from "react";
-import type { IconProps } from "nucleo-core-essential-outline-24";
+import type { LucideProps, LucideIcon } from "lucide-react";
 
-export type AppIconProps = IconProps;
-export type AppIcon = React.FC<AppIconProps>;
+export type AppIconProps = LucideProps;
+export type AppIcon = LucideIcon;
 
 export {
   // Alerts & feedback
-  IconCircleWarningOutline24 as AlertCircle,
-  IconTriangleWarningOutline24 as AlertTriangle,
-  IconCircleCheckOutline24 as CheckCircle2,
-  // Arrows → chevrons (essential set has no plain arrows)
-  IconChevronDownOutline24 as ArrowDown,
-  IconChevronLeftOutline24 as ArrowLeft,
-  IconChevronRightOutline24 as ArrowRight,
-  IconChevronUpOutline24 as ArrowUp,
+  CircleAlert as AlertCircle,
+  TriangleAlert as AlertTriangle,
+  CircleCheckBig as CheckCircle2,
+  // Arrows → chevrons (kept under historical names)
+  ChevronDown as ArrowDown,
+  ChevronLeft as ArrowLeft,
+  ChevronRight as ArrowRight,
+  ChevronUp as ArrowUp,
   // Chevrons (bare + *Icon aliases used by ui primitives)
-  IconChevronDownOutline24 as ChevronDown,
-  IconChevronDownOutline24 as ChevronDownIcon,
-  IconChevronLeftOutline24 as ChevronLeft,
-  IconChevronLeftOutline24 as ChevronLeftIcon,
-  IconChevronRightOutline24 as ChevronRight,
-  IconChevronRightOutline24 as ChevronRightIcon,
-  IconChevronUpOutline24 as ChevronUpIcon,
+  ChevronDown as ChevronDown,
+  ChevronDown as ChevronDownIcon,
+  ChevronLeft as ChevronLeft,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRight,
+  ChevronRight as ChevronRightIcon,
+  ChevronUp as ChevronUpIcon,
   // Calendar & time
-  IconCalendarOutline24 as Calendar,
-  IconCalendarOutline24 as CalendarCheck,
-  IconCalendarOutline24 as CalendarDays,
-  IconClock2Outline24 as Clock,
-  IconClock2Outline24 as Clock3,
-  IconCheckboxChecked3Outline24 as ClipboardCheck,
+  Calendar,
+  CalendarCheck,
+  CalendarDays,
+  Clock,
+  Clock as Clock3,
+  ClipboardCheck,
   // Checks
-  IconCheckOutline24 as Check,
-  IconCheckOutline24 as CheckIcon,
+  Check,
+  Check as CheckIcon,
   // People & org
-  IconUser3Outline24 as User,
-  IconUser3Outline24 as UserRound,
-  IconUser3Outline24 as Users,
-  IconObjAddOutline24 as UserPlus,
-  IconSquaresConnectedOutline24 as UsersRound,
-  IconSquaresConnectedOutline24 as Network,
-  IconHeartOutline24 as HandHeart,
+  User,
+  UserRound,
+  Users,
+  UserPlus,
+  UsersRound,
+  Network,
+  HandHeart,
   // Navigation & layout
-  IconSquareLayoutGridOutline24 as LayoutDashboard,
-  IconSidebarRightOutline24 as PanelLeftClose,
-  IconSidebarRightOutline24 as PanelLeftIcon,
-  IconSidebarRightOutline24 as PanelLeftOpen,
-  IconHouse6Outline24 as Home,
-  IconHouse6Outline24 as Church,
-  IconMenuOutline24 as Menu,
-  IconArrowDoorOut2Outline24 as LogOut,
+  LayoutDashboard,
+  PanelLeftClose,
+  PanelLeft as PanelLeftIcon,
+  PanelLeftOpen,
+  House as Home,
+  House as Church,
+  Menu,
+  LogOut,
   // Content & files
-  IconFileContentOutline24 as FileText,
-  IconFileContentOutline24 as ScrollText,
-  IconBookOpenOutline24 as Library,
-  IconArchiveOutline24 as Inbox,
-  IconBulletListOutline24 as List,
-  IconGridOutline24 as Grid,
+  FileText,
+  ScrollText,
+  Library,
+  Inbox,
+  List,
+  LayoutGrid as Grid,
   // Media
-  IconHeadphonesOutline24 as Headphones,
-  IconLoveMusicOutline24 as Play,
-  IconFullScreen2Outline24 as Video,
-  IconImageOutline24 as Camera,
+  Headphones,
+  Play,
+  Video,
+  Camera,
   // Comms
-  IconEnvelopeOutline24 as Mail,
-  IconPhoneRotaryOutline24 as Phone,
-  IconBellOutline24 as Bell,
+  Mail,
+  Phone,
+  Bell,
   // Actions
-  IconPlusOutline24 as Plus,
-  IconMinusOutline24 as MinusIcon,
-  IconPen2Outline24 as Pencil,
-  IconTrash3Outline24 as Trash2,
-  IconRefreshOutline24 as RefreshCw,
-  IconDownload3Outline24 as Download,
-  IconUpload4Outline24 as Upload,
-  IconFilterOutline24 as Filter,
-  IconGear3Outline24 as Settings2,
-  IconMagnifierOutline24 as Search,
-  IconMagnifierOutline24 as SearchIcon,
-  IconLockOutline24 as Lock,
-  IconStar2Outline24 as Crown,
-  IconLocation4Outline24 as MapPin,
-  IconDatabaseOutline24 as ServerOff,
-  IconChartBarAxisXOutline24 as TrendingUp,
-  IconXmarkOutline24 as X,
-  IconXmarkOutline24 as XIcon,
-  // Theme (essential set has no moon/sun — one neutral glyph for both states)
-  IconLightSwitchOutline24 as Moon,
-  IconLightSwitchOutline24 as Sun,
-} from "nucleo-core-essential-outline-24";
+  Plus,
+  Minus as MinusIcon,
+  Pencil,
+  Trash2,
+  RefreshCw,
+  Download,
+  Upload,
+  Filter,
+  Settings2,
+  Search,
+  Search as SearchIcon,
+  Lock,
+  Crown,
+  MapPin,
+  ServerOff,
+  TrendingUp,
+  X,
+  X as XIcon,
+  // Primitives now covered by Lucide (historical names)
+  Ellipsis as MoreHorizontal,
+  Ellipsis as MoreHorizontalIcon,
+  GripVertical as GripVerticalIcon,
+  LoaderCircle as Loader2,
+  Eye,
+  EyeOff,
+  // Theme
+  Moon,
+  Sun,
+} from "lucide-react";
 
-/* ── Primitives the essential set lacks ────────────────────────────────────
-   Same 24px grid so the global 1px-stroke icon rule applies uniformly. */
+/* ── The one primitive Lucide doesn't cover ──────────────────────────────
+   Filled dot — radio/menu item indicator (Lucide `Circle` is outline). */
 
 type PrimitiveProps = AppIconProps;
 
-/** Filled dot — radio/menu item indicator (was lucide `Circle`). */
-export const CircleIcon = (props: PrimitiveProps) => (
-  <svg viewBox="0 0 24 24" width={24} height={24} fill="currentColor" aria-hidden="true" {...props}>
+export const CircleIcon = ({ size = 24, className, ...rest }: PrimitiveProps) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="currentColor"
+    aria-hidden="true"
+    className={className}
+    {...rest}
+  >
     <circle cx="12" cy="12" r="6" />
   </svg>
 );
-
-/** Horizontal ellipsis — page gaps & breadcrumb separators (was lucide `MoreHorizontal`). */
-const Ellipsis = (props: PrimitiveProps) => (
-  <svg viewBox="0 0 24 24" width={24} height={24} fill="currentColor" aria-hidden="true" {...props}>
-    <circle cx="5" cy="12" r="1.7" />
-    <circle cx="12" cy="12" r="1.7" />
-    <circle cx="19" cy="12" r="1.7" />
-  </svg>
-);
-export { Ellipsis as MoreHorizontal, Ellipsis as MoreHorizontalIcon };
-
-/** Single-arc spinner (was lucide `Loader2`; pair with animate-spin). */
-export const Loader2 = (props: PrimitiveProps) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={24}
-    height={24}
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    aria-hidden="true"
-    {...props}
-  >
-    <path d="M21 12a9 9 0 1 1-9-9" />
-  </svg>
-);
-
-/** Eye / EyeOff — password visibility toggle (essential set lacks both). */
-export const Eye = (props: PrimitiveProps) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={24}
-    height={24}
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-    {...props}
-  >
-    <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-export const EyeOff = (props: PrimitiveProps) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={24}
-    height={24}
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-    {...props}
-  >
-    <path d="M2.8 12.5S6 6.5 12 6.5c1.6 0 3 .4 4.2 1M21.2 11.5S18 17.5 12 17.5c-1.6 0-3-.4-4.2-1" />
-    <path d="M4 20 20 4" />
-  </svg>
-);
-
-/** Vertical drag grip (was lucide `GripVertical`). */
-const Grip = (props: PrimitiveProps) => (
-  <svg viewBox="0 0 24 24" width={24} height={24} fill="currentColor" aria-hidden="true" {...props}>
-    <circle cx="9" cy="6" r="1.4" />
-    <circle cx="15" cy="6" r="1.4" />
-    <circle cx="9" cy="12" r="1.4" />
-    <circle cx="15" cy="12" r="1.4" />
-    <circle cx="9" cy="18" r="1.4" />
-    <circle cx="15" cy="18" r="1.4" />
-  </svg>
-);
-export { Grip as GripVerticalIcon };

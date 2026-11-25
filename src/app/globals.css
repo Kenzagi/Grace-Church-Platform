@@ -60,6 +60,9 @@
   --color-accent-cyan: var(--accent-cyan);
   --color-accent-indigo: var(--accent-indigo);
   --color-accent-indigo-soft: var(--accent-indigo-soft);
+  /* Chart tooltip surface — a step above cards, themed per scope */
+  --color-tooltip: var(--tooltip);
+  --color-tooltip-foreground: var(--tooltip-foreground);
   /* 4px spacing grid — explicit multiples of 4 */
   --spacing-1: 4px;
   --spacing-2: 8px;
@@ -109,8 +112,8 @@
   --border: rgb(255 255 255 / 5%);
   --input: rgb(255 255 255 / 10%);
   --ring: #ffffff;
-  --chart-1: #00B4D8;
-  --chart-2: #8B94F2;
+  --chart-1: #fafafa;
+  --chart-2: #a3a3a3;
   --chart-3: #8f8f8f;
   --chart-4: #6A6A6A;
   --chart-5: #4a4a4a;
@@ -119,6 +122,9 @@
   --accent-cyan: #00B4D8;
   --accent-indigo: #3F4ADE;
   --accent-indigo-soft: #8B94F2;
+  /* Tooltip: one step above the #212121 card, light text */
+  --tooltip: #262626;
+  --tooltip-foreground: #fafafa;
   --sidebar: #1a1a1a;
   --sidebar-foreground: #eeeeee;
   --sidebar-primary: #ffffff;
@@ -154,14 +160,16 @@
   --border: rgb(255 255 255 / 5%);
   --input: rgb(255 255 255 / 10%);
   --ring: #ffffff;
-  --chart-1: #00B4D8;
-  --chart-2: #8B94F2;
+  --chart-1: #fafafa;
+  --chart-2: #a3a3a3;
   --chart-3: #8f8f8f;
   --chart-4: #6A6A6A;
   --chart-5: #4a4a4a;
   --accent-cyan: #00B4D8;
   --accent-indigo: #3F4ADE;
   --accent-indigo-soft: #8B94F2;
+  --tooltip: #262626;
+  --tooltip-foreground: #fafafa;
   --sidebar: #1a1a1a;
   --sidebar-foreground: #eeeeee;
   --sidebar-primary: #ffffff;
@@ -211,6 +219,9 @@
   --accent-cyan: #00B4D8;
   --accent-indigo: #3F4ADE;
   --accent-indigo-soft: #8B94F2;
+  /* Tooltip on light scope: white card, ink text */
+  --tooltip: #ffffff;
+  --tooltip-foreground: #1f3038;
   font-family: var(--font-instrument), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 /* Focus: solid ink outline over a white halo — visible on the frost ground,
@@ -377,6 +388,11 @@
   }
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background-color: var(--muted-foreground);
+  }
+  /* Lucide icons render at the system stroke (1.5px) regardless of how they
+     are mounted — <Icon /> already passes it; this covers direct usages. */
+  svg.lucide {
+    stroke-width: 1.5;
   }
   /* Title typography token (18px / 24px, Medium — style spec) */
   .text-title {

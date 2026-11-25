@@ -48,11 +48,11 @@ async function _handleGET() {
       title: e.title,
     }));
 
-  // Member status breakdown — palette per design system:
-  // cyan (additional) for the primary series, soft indigo + neutral for the rest
+  // Member status breakdown — neutral fallbacks; the dashboard overrides these
+  // client-side with theme-aware shades of the primary/secondary palette
   const statusBreakdown = [
-    { label: "Active", value: activeMembers, color: "#00B4D8" },
-    { label: "Visitors", value: visitors, color: "#8B94F2" },
+    { label: "Active", value: activeMembers, color: "#fafafa" },
+    { label: "Visitors", value: visitors, color: "#a3a3a3" },
     {
       label: "Inactive",
       value: await db.member.count({ where: { orgId, status: "inactive" } }),

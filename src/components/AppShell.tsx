@@ -171,7 +171,7 @@ export function AppShell({
               </TooltipContent>
             </Tooltip>
             <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-medium text-primary">{user.organization?.name || "Teleios"}</span>
+              <span className="font-medium text-primary">Teleios</span>
               <span className="text-border">/</span>
               <span className="capitalize">{activeLabel}</span>
             </div>

@@ -53,20 +53,61 @@ function useChartColors() {
       (typeof document !== "undefined" &&
         document.documentElement.classList.contains("dark"));
     return {
-      // Series use the design system's additional accents: cyan line,
-      // indigo bars (soft lift on dark — raw #3F4ADE is fill-only there)
-      stroke: "#00B4D8",
-      bar: isDark ? "#8B94F2" : "#3F4ADE",
+      // Monochrome system: series are shades of primary (#fafafa dark /
+      // #181818 light) and secondary #6A6A6A — no foreign hues in charts
+      stroke: isDark ? "#fafafa" : "#181818",
+      bar: isDark ? "#a3a3a3" : "#6A6A6A",
+      // Donut ramp — primary, then two secondary shades for depth
+      donut: isDark ? ["#fafafa", "#a3a3a3", "#5c5c5c"] : ["#181818", "#6a6a6a", "#c9c9c9"],
       grid: isDark ? "#2a2a2a" : "#ececec",
       tick: isDark ? "#a3a3a3" : "#6A6A6A",
-      tooltipBorder: isDark ? "#2a2a2a" : "#ececec",
-      tooltipBg: isDark ? "#262626" : "#ffffff",
-      tooltipText: isDark ? "#fafafa" : "#181818",
       barCursor: isDark ? "#262626" : "#f7f7f7",
-      shadow: isDark ? "0 4px 12px rgba(0,0,0,0.4)" : "0 4px 12px rgba(0,0,0,0.06)",
-      gradStop: "#00B4D8",
+      gradStop: isDark ? "#fafafa" : "#181818",
     };
   }, [resolvedTheme]);
+}
+
+/** Themed tooltip content — replaces recharts' default, whose item styles
+    override the container colour and render black-on-black in dark mode. */
+interface TipEntry {
+  name?: string | number;
+  value?: string | number;
+  color?: string;
+}
+
+function ChartTip({
+  active,
+  payload,
+  label,
+  unit,
+}: {
+  active?: boolean;
+  payload?: TipEntry[];
+  label?: string | number;
+  unit?: string;
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="min-w-32 rounded-md border border-border bg-tooltip text-tooltip-foreground px-3 py-2 shadow-lg text-sm">
+      {label !== undefined && label !== "" && (
+        <p className="text-caption mb-1">{label}</p>
+      )}
+      <ul className="space-y-1">
+        {payload.map((p, i) => (
+          <li key={i} className="flex items-center gap-2 whitespace-nowrap">
+            {p.color && (
+              <span className="w-2 h-2 rounded-sm shrink-0" style={{ background: p.color }} />
+            )}
+            <span className="text-muted-foreground">{p.name}</span>
+            <span className="ml-auto pl-4 font-medium tabular-nums">
+              {p.value}
+              {unit ? ` ${unit}` : ""}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/lib/types").SectionId) => void }) {
@@ -93,6 +134,12 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
     );
 
   const s = data;
+  // Donut slices get theme-aware shades of the primary/secondary palette —
+  // the API's static colors are only a fallback for non-dashboard callers
+  const pieData = s.statusBreakdown.map((b, i) => ({
+    ...b,
+    color: c.donut[i % c.donut.length],
+  }));
 
   return (
     <div>
@@ -157,17 +204,11 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
                 <XAxis dataKey="label" tick={{ fontSize: 14, fill: c.tick }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 14, fill: c.tick }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{
-                    borderRadius: 8,
-                    border: `1px solid ${c.tooltipBorder}`,
-                    fontSize: 14,
-                    boxShadow: c.shadow,
-                    backgroundColor: c.tooltipBg,
-                    color: c.tooltipText,
-                  }}
-                  formatter={(v: number) => [`${v} present`, "Attendance"]}
+                  content={<ChartTip unit="present" />}
+                  cursor={{ stroke: c.tick, strokeDasharray: "3 3" }}
                 />
                 <Area
+                  name="Attendance"
                   type="monotone"
                   dataKey="present"
                   stroke={c.stroke}
@@ -187,25 +228,24 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={s.statusBreakdown}
+                  data={pieData}
                   dataKey="value"
                   nameKey="label"
-                  innerRadius={48}
-                  outerRadius={72}
+                  innerRadius={52}
+                  outerRadius={76}
                   paddingAngle={2}
+                  strokeWidth={0}
                 >
-                  {s.statusBreakdown.map((entry, i) => (
+                  {pieData.map((entry, i) => (
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip
-                  contentStyle={{ borderRadius: 8, border: `1px solid ${c.tooltipBorder}`, fontSize: 14, backgroundColor: c.tooltipBg, color: c.tooltipText }}
-                />
+                <Tooltip content={<ChartTip />} />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <ul className="mt-4 space-y-2">
-            {s.statusBreakdown.map((b) => (
+            {pieData.map((b) => (
               <li key={b.label} className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-sm" style={{ background: b.color }} />
@@ -242,9 +282,9 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
                 <YAxis tick={{ fontSize: 14, fill: c.tick }} axisLine={false} tickLine={false} />
                 <Tooltip
                   cursor={{ fill: c.barCursor }}
-                  contentStyle={{ borderRadius: 8, border: `1px solid ${c.tooltipBorder}`, fontSize: 14, backgroundColor: c.tooltipBg, color: c.tooltipText }}
+                  content={<ChartTip />}
                 />
-                <Bar dataKey="value" fill={c.bar} radius={[4, 4, 0, 0]} />
+                <Bar name="Members" dataKey="value" fill={c.bar} radius={[4, 4, 0, 0]} barSize={28} />
               </BarChart>
             </ResponsiveContainer>
           </div>
