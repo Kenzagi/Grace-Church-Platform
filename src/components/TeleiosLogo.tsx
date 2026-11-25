@@ -1,30 +1,18 @@
 /**
- * Teleios mark — Trinity triangle.
- * Three equal nodes (Father / Son / Holy Spirit) joined by one continuous
- * outline; the medians meet at a single center point — three in one.
- * variant "mono": currentColor throughout (for colorful surfaces / chips).
- * variant "accent": the three palette accents as nodes; medians and the
- * center point follow currentColor. On dark surfaces pass dark so the
- * deep-purple node stays visible (#391463 is near-invisible on #1a1a1a).
+ * Teleios mark — Trinity triangle, single color.
+ * A solid, rounded triangle with a V-shaped notch rising from the bottom
+ * edge to one center point: three equal corners joined as one being.
+ * AdonisJS-style monoline geometry — generous corner rounding, polished
+ * silhouette. One color only: it inherits `currentColor`, so contexts
+ * decide the hue (white on dark surfaces, ink inside light chips).
  */
 export function TeleiosLogo({
   size = 32,
-  variant = "accent",
-  dark = false,
   className,
 }: {
   size?: number;
-  variant?: "accent" | "mono";
-  dark?: boolean;
   className?: string;
 }) {
-  const nodes =
-    variant === "mono"
-      ? ["currentColor", "currentColor", "currentColor"]
-      : dark
-        ? ["#FF5714", "#16DB65", "#9D7BFF"]
-        : ["#FF5714", "#16DB65", "#391463"];
-
   return (
     <svg
       width={size}
@@ -34,26 +22,12 @@ export function TeleiosLogo({
       aria-hidden="true"
       className={className}
     >
-      {/* medians — three points meeting at one center */}
-      <g stroke="currentColor" strokeOpacity={0.32} strokeWidth={1.7} strokeLinecap="round">
-        <line x1="24" y1="11.4" x2="24" y2="24.9" />
-        <line x1="10.6" y1="36.6" x2="20" y2="30.9" />
-        <line x1="37.4" y1="36.6" x2="28" y2="30.9" />
-      </g>
-      {/* one continuous outline */}
       <path
-        d="M24 7 L41.5 39 L6.5 39 Z"
-        stroke="currentColor"
-        strokeWidth={2.7}
-        strokeLinejoin="round"
-        strokeLinecap="round"
+        fill="currentColor"
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M21.66 10.92 A5 5 0 0 1 26.34 10.92 L39.16 35.08 A5 5 0 0 1 36.5 39.5 L11.5 39.5 A5 5 0 0 1 8.84 35.08 Z M16.2 39.5 L22.8 25.4 Q24 23.0 25.2 25.4 L31.8 39.5 Z"
       />
-      {/* the three hypostases — equal points */}
-      <circle cx="24" cy="7" r="4.4" fill={nodes[0]} />
-      <circle cx="6.5" cy="39" r="4.4" fill={nodes[1]} />
-      <circle cx="41.5" cy="39" r="4.4" fill={nodes[2]} />
-      {/* one being */}
-      <circle cx="24" cy="28.3" r="2.5" fill="currentColor" />
     </svg>
   );
 }

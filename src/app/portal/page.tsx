@@ -57,7 +57,7 @@ export default function PortalPage() {
       <header className="h-16 border-b border-border bg-surface flex items-center px-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-sm bg-primary text-primary-foreground flex items-center justify-center">
-            <TeleiosLogo size={20} variant="mono" />
+            <TeleiosLogo size={20} />
           </div>
           <div>
             <p className="text-sm font-medium text-primary">Teleios</p>
