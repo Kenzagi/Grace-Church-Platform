@@ -7,14 +7,14 @@ A full-featured church management system built with **Next.js 16**, **React 19**
 - **Member Management** — Add, edit, search, filter, and CSV-import members
 - **Households** — Group members by family/household
 - **Groups & Ministries** — Worship team, ushers, youth fellowship, etc.
-- **Attendance Tracking** — Per-event attendance with statuses (present/absent/excused/late)
+- **Attendance Tracking** — Redesigned recorder: searchable service list, bulk "mark all present", status filters, honest live counts; per-member history and weekly trend charts
 - **Events** — Create services, meetings, and activities with reminders
 - **Sermon Media Library** — Sermons, series, and media submissions with review queue
 - **Member Media Portal** — Members submit sermons and track review status at `/portal` (public, rate-limited, no account needed)
 - **Volunteer Scheduling** — Roles, capacity, and event-based assignments with per-event capacity overrides
 - **RBAC Auth** — Admin, Editor, and Viewer roles with session cookies
 - **Audit Logging** — Immutable action history for all write operations (portal actions included)
-- **Refined Dark UI** — Linear-style dark-first interface with Inter typography and custom date/time/range pickers
+- **Dual Theme UI** — Linear-style dark-first interface with a full light theme (header toggle); monochrome charts derived from primary/secondary shades; Lucide iconography at 1.5px stroke; ⌘K/`/` quick search palette
 
 ## Tech Stack
 
@@ -165,6 +165,7 @@ src/
 │   └── page.tsx        # Single-page app shell
 ├── components/
 │   ├── sections/       # Main feature sections (Members, Events, etc.)
+│   ├── charts/         # The ONLY place recharts is imported (theme-aware)
 │   ├── ui/             # shadcn/ui components
 │   └── AppShell.tsx    # Sidebar navigation
 ├── hooks/              # Custom React hooks
@@ -176,6 +177,24 @@ prisma/
 └── seed.ts                  # Demo data seeder
 docs/design/               # Architecture, members-workflow and ER diagrams + PDF report
 ```
+
+## Engineering & Design Rules (strict)
+
+These rules keep the system uniform and are partially **enforced by ESLint** (`npm run lint`). Violations fail code review.
+
+**Tokens only.** All colors come from the CSS custom properties in `globals.css` (`bg-surface`, `text-muted-foreground`, `border-border`, …). No hex literals, `rgb()` values, or ad-hoc Tailwind palette colors (`slate-500` etc.) in components. If a value is missing, add a token to `globals.css` for both scopes (`:root`/`.dark` **and** `.light`) before using it. Every new token added for dark must have a light counterpart — the app ships **both themes** and each must stay readable (verify with the header toggle before merging).
+
+**Icons.** Import icons **only** from `@/components/icons` (the Lucide barrel). Direct `lucide-react` imports are ESLint-blocked; Nucleo is gone. Default size 18px, stroke 1.5px (enforced globally — never pass custom `strokeWidth`). To add an icon, add one alias line to the barrel.
+
+**Inputs & controls.** Never use raw `<input>`/`<select>`/`<textarea>` in sections — use `@/components/ui/input` (and friends) so height (40px), radius (8px), border and focus ring stay identical. Two controls on the same line must match in height, radius, and contrast.
+
+**Charts.** Import chart components **only** from `@/components/charts` (`TrendChart`, `StatusDonut`, `GroupBars`); direct `recharts` imports outside that folder are ESLint-blocked. Charts are monochrome — shades of primary/secondary only. Tooltips render through `ChartTip` (never recharts' default styling). Lines 2px, bars 28px.
+
+**Typography & spacing.** Use the typography tokens (`text-title`, `text-caption`); body 16px, dense 14px, titles 18px. Spacing on the 4px grid (`gap-3`, `p-4`, `py-2.5`…).
+
+**Single sourcing.** One import point per concern: icons → `components/icons`, charts → `components/charts`, primitives → `components/ui`. Before adding a component, search for an existing one — duplicating a visual pattern is a defect, not a shortcut.
+
+**Before merging, verify:** dark **and** light themes at desktop + mobile widths; charts render with themed tooltips; no raw inputs; lint clean (`npm run lint`); `npm run build` passes.
 
 ## License
 

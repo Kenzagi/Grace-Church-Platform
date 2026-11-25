@@ -27,10 +27,11 @@ import {
   X,
   PanelLeftClose,
   PanelLeftOpen,
-  Sun,
 } from "@/components/icons";
 import type { AppIcon } from "@/components/icons";
 import type { SectionId, User } from "@/lib/types";
+import { QuickSearch } from "@/components/QuickSearch";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface NavItem {
   id: SectionId;
@@ -78,12 +79,32 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = React.useState(false);
   // Desktop collapse — persisted to localStorage
   const [collapsed, setCollapsed] = React.useState(false);
+  const [searchOpen, setSearchOpen] = React.useState(false);
 
   React.useEffect(() => {
     try {
       const stored = localStorage.getItem(COLLAPSE_KEY);
       if (stored === "true") setCollapsed(true);
     } catch {}
+  }, []);
+
+  // Global quick-search shortcuts: Ctrl/Cmd+K anywhere, "/" outside fields
+  React.useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const t = e.target as HTMLElement | null;
+      const typing =
+        !!t &&
+        (t.tagName === "INPUT" ||
+          t.tagName === "TEXTAREA" ||
+          t.tagName === "SELECT" ||
+          t.isContentEditable);
+      if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   function toggleCollapse() {
@@ -176,14 +197,27 @@ export function AppShell({
               <span className="capitalize">{activeLabel}</span>
             </div>
             <div className="flex-1" />
-            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+            <button
+              onClick={() => setSearchOpen(true)}
+              aria-label="Open quick search"
+              className="hidden md:flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
               <Icon as={Search} boundingBox={false} />
               <span className="text-caption">Quick search</span>
               <kbd className="ml-2 px-2 h-6 inline-flex items-center rounded-sm border border-border bg-surface-alt text-xs font-mono">
                 /
               </kbd>
-            </div>
-            <div className="w-px h-6 bg-border hidden md:block" />            <div className="flex items-center gap-2">
+            </button>
+            <button
+              onClick={() => setSearchOpen(true)}
+              aria-label="Open quick search"
+              className="md:hidden w-9 h-9 inline-flex items-center justify-center rounded-sm hover:bg-surface-alt text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Icon as={Search} boundingBox={false} />
+            </button>
+            <div className="w-px h-6 bg-border hidden md:block" />
+            <ThemeToggle />
+            <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
                 {user.name
                   .split(" ")
@@ -210,6 +244,17 @@ export function AppShell({
             </footer>
           </main>
         </div>
+
+        {/* Quick search palette (⌘K / /) — mounts only while open */}
+        {searchOpen && (
+          <QuickSearch
+            onOpenChange={(v) => setSearchOpen(v)}
+            onNavigate={(id) => {
+              setSearchOpen(false);
+              onNavigate(id);
+            }}
+          />
+        )}
 
         {/* Mobile close button overlay */}
         {mobileOpen && (

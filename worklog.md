@@ -168,3 +168,20 @@ Stage Summary:
 - Everything from the lost Nov 1–2 sessions is back: groups cards + editing, pagination, attendance card, style/dark sweeps, multiselect volunteers, need overrides, filled-to-bottom, pane timepicker — verified end-to-end and committed as a real commit (no reliance on auto-checkpoints).
 - Standing mitigations: .recovery-snapshot/ preserved in-tree and zipped to download/ for off-sandbox keeping; pushing to a git remote remains the one durable fix the platform cannot roll back (needs a user-provided remote).
 - Deferred per standing agreement: Redis, blob storage, PostgreSQL.
+
+---
+Task ID: next-round
+Agent: Super Z (main agent)
+Task: Optimization round — redundancy elimination, dual themes, Attendance redesign.
+
+Completed:
+- Extracted all chart code to src/components/charts/ (chart-theme, TrendChart, StatusDonut, GroupBars + barrel). DashboardSection and the new AttendanceSection consume it; recharts may no longer be imported anywhere else (ESLint enforced).
+- Deleted dead code: src/components/ui/chart.tsx (unused shadcn wrapper) and the unused cssVar helper in DashboardSection.
+- Replaced the homemade div-bar trend visualization in Attendance > Trends with the shared TrendChart (one implementation, not two).
+- Redesigned the Attendance screen (new src/components/sections/AttendanceSection.tsx, split out of EventsAttendanceSection.tsx): summary stat row (avg attendance, latest service, active, visitors), Record tab with searchable service list, roster search, bulk "Mark all present", per-status filter chips with live counts, honest absent-default counts, sticky save bar; By member tab with searchable list; Trends tab on the shared chart.
+- Added functional QuickSearch (⌘K or "/") — command palette over section destinations + live member/group/media matches; header quick-search is now a real button, mobile search button added.
+- Adopted both themes: ThemeProvider defaultTheme=dark with light theme enabled, full .light token scope in globals.css (light destructive #c23b28 for AA on white), ThemeToggle wired into the header (was built but unused). Auth screens keep their .teleios-light dealt style.
+- ESLint: no-restricted-imports blocks direct lucide-react / nucleo-* / recharts imports outside the barrels.
+- README.md: added strict "Engineering & Design Rules" section; worklog conventions updated.
+
+Verification: production build clean; verified in browser at 1440/390 in dark and light (dashboard charts + tooltips, attendance record flow, quick search palette).

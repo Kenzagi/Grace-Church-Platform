@@ -90,6 +90,7 @@ export {
   RefreshCw,
   Download,
   Upload,
+  Eraser,
   Filter,
   Settings2,
   Search,

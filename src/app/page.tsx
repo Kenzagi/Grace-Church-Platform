@@ -8,7 +8,8 @@ import { DashboardSection } from "@/components/sections/DashboardSection";
 import { GroupsSection } from "@/components/sections/GroupsSection";
 import { MembersSection } from "@/components/sections/MembersSection";
 import { MediaSection, SubmissionsSection } from "@/components/sections/MediaSubmissionsSection";
-import { EventsSection, AttendanceSection } from "@/components/sections/EventsAttendanceSection";
+import { EventsSection } from "@/components/sections/EventsAttendanceSection";
+import { AttendanceSection } from "@/components/sections/AttendanceSection";
 import {
   HouseholdsSection,
   VolunteersSection,

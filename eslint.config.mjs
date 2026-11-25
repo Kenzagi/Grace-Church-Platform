@@ -61,7 +61,36 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     "react-hooks/preserve-manual-memoization": "off",
   },
 }, {
-  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills"]
+  // Icon & chart single-sourcing (strict): every icon comes from the
+  // @/components/icons barrel (lucide-react); every chart from
+  // @/components/charts. Raw imports bypass the theme/stroke/tooltip rules.
+  files: ["src/**/*.{ts,tsx}"],
+  rules: {
+    "no-restricted-imports": ["error", {
+      patterns: [
+        {
+          group: ["lucide-react", "lucide-react/*"],
+          message: "Import icons from @/components/icons (the barrel) — never from lucide-react directly.",
+        },
+        {
+          group: ["nucleo-*"],
+          message: "Nucleo was replaced by Lucide; import from @/components/icons.",
+        },
+        {
+          group: ["recharts", "recharts/*"],
+          message: "Use the chart components in @/components/charts — never import recharts in sections/pages.",
+        },
+      ],
+    }],
+  },
+}, {
+  // The barrels themselves are the one place allowed to import the sources.
+  files: ["src/components/icons.tsx", "src/components/charts/**"],
+  rules: {
+    "no-restricted-imports": "off",
+  },
+}, {
+  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills", "external/**", "download/**", "upload/**", "scripts/**", "docs/**", "prisma/migrations/**"]
 }];
 
 export default eslintConfig;

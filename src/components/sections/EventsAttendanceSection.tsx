@@ -4,15 +4,14 @@ import * as React from "react";
 import { Icon } from "@/components/Icon";
 import { PageHeader, SectionCard, LoadingSpinner, EmptyState, ErrorState } from "@/components/shared";
 import { useFetch, apiRequest } from "@/hooks/use-fetch";
-import { fullName, initials, formatDate, formatTime, formatDateTime, statusClass } from "@/lib/format";
-import type { EventItem, Member } from "@/lib/types";
+import { formatTime, formatDateTime } from "@/lib/format";
+import type { EventItem } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
@@ -22,7 +21,6 @@ import {
 import { cn } from "@/lib/utils";
 import { DateRangePickerDropdown, type DateRange, type DateRangePreset } from "@/components/motion/date-range-picker";
 import { DateTimeField, localDateTimeKey } from "@/components/forms/pickers";
-import { AttendanceCard } from "@/components/AttendanceCard";
 
 export function EventsSection() {
   const [view, setView] = React.useState<"list" | "calendar">("list");
@@ -402,249 +400,5 @@ function ReminderDialog({ event, onClose }: { event: EventItem; onClose: () => v
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-// ── Attendance section (3 tabs) ───────────────────────────────────
-export function AttendanceSection() {
-  return (
-    <div>
-      <PageHeader
-        title="Attendance"
-      />
-      <Tabs defaultValue="event">
-        <TabsList className="mb-4">
-          <TabsTrigger value="event">By Event</TabsTrigger>
-          <TabsTrigger value="member">By Member</TabsTrigger>
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-        </TabsList>
-        <TabsContent value="event"><AttendanceByEvent /></TabsContent>
-        <TabsContent value="member"><AttendanceByMember /></TabsContent>
-        <TabsContent value="trends"><AttendanceTrends /></TabsContent>
-      </Tabs>
-    </div>
-  );
-}
-
-function AttendanceByEvent() {
-  const [eventId, setEventId] = React.useState<string | null>(null);
-  const { data: eventsData } = useFetch<{ events: EventItem[] }>(`/api/events`);
-  const events = eventsData?.events || [];
-  const pastEvents = events.filter((e) => new Date(e.startTime) < new Date());
-
-  if (!eventId) {
-    return (
-      <SectionCard>
-        {pastEvents.length === 0 ? <EmptyState title="No past events" /> : (
-          <div className="divide-y divide-border">
-            {pastEvents.map((e) => (
-              <button key={e.id} onClick={() => setEventId(e.id)} className="w-full p-4 flex items-center justify-between hover:bg-surface-alt text-left">
-                <div>
-                  <p className="font-medium text-primary">{e.title}</p>
-                  <p className="text-caption">{formatDateTime(e.startTime)} · {e.location || "No location"}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-caption">{e._count?.attendance || 0} recorded</span>
-                  <Icon as={ChevronRight} boundingBox={false} size={18} className="text-muted-foreground" />
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </SectionCard>
-    );
-  }
-
-  return <EventAttendanceRecorder eventId={eventId} onBack={() => setEventId(null)} />;
-}
-
-function EventAttendanceRecorder({ eventId, onBack }: { eventId: string; onBack: () => void }) {
-  const { data, loading, error, refetch } = useFetch<{ attendance: { id: string; memberId: string; status: string; note: string | null }[]; members: { id: string; firstName: string; lastName: string; phone: string | null }[]; event: EventItem | null }>(`/api/attendance?eventId=${eventId}`);
-  const [changes, setChanges] = React.useState<Record<string, string>>({});
-  const [saving, setSaving] = React.useState(false);
-
-  if (loading) return <LoadingSpinner label="Loading attendance…" />;
-  if (error || !data) return <ErrorState title="Couldn't load attendance" description={error} onRetry={refetch} />;
-
-  const attendanceMap: Record<string, string> = {};
-  for (const a of data.attendance) attendanceMap[a.memberId] = a.status;
-
-  const getStatus = (memberId: string) => changes[memberId] || attendanceMap[memberId] || "present";
-  const dirtyCount = Object.keys(changes).length;
-
-  async function save() {
-    setSaving(true);
-    const records = Object.entries(changes).map(([memberId, status]) => ({ memberId, status }));
-    const res = await apiRequest("/api/attendance", { method: "POST", body: { eventId, records } });
-    setSaving(false);
-    if (res.ok) { toast.success(`Saved attendance for ${records.length} members`); setChanges({}); refetch(); }
-    else toast.error(res.error || "Failed");
-  }
-
-  const STATUSES = ["present", "absent", "excused", "late"];
-
-  return (
-    <SectionCard>
-      <div className="p-4 border-b border-border flex items-center justify-between">
-        <div>
-          <button onClick={onBack} className="text-sm text-muted-foreground hover:text-primary mb-1 inline-flex items-center gap-1">
-            <Icon as={ChevronLeft} boundingBox={false} size={16} />Back to events
-          </button>
-          <h3 className="text-title text-primary">{data.event?.title}</h3>
-          <p className="text-caption">{formatDateTime(data.event?.startTime)}</p>
-        </div>
-        {dirtyCount > 0 && (
-          <Button size="sm" onClick={save} disabled={saving}>
-            {saving ? "Saving…" : `Save (${dirtyCount})`}
-          </Button>
-        )}
-      </div>
-      <div className="max-h-[60vh] overflow-y-auto scrollbar-thin divide-y divide-border">
-        {data.members.map((m) => {
-          const status = getStatus(m.id);
-          return (
-            <div key={m.id} className="p-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-surface-alt flex items-center justify-center text-xs font-medium text-primary shrink-0">
-                  {(m.firstName[0] || "") + (m.lastName[0] || "")}
-                </div>
-                <span className="text-sm text-foreground truncate">{m.firstName} {m.lastName}</span>
-              </div>
-              <div className="flex items-center gap-1 shrink-0">
-                {STATUSES.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setChanges({ ...changes, [m.id]: s })}
-                    className={cn(
-                      "px-2.5 py-1 rounded-sm text-xs font-medium capitalize border transition-colors",
-                      status === s ? statusClass(s) : "border-border text-muted-foreground hover:bg-surface-alt"
-                    )}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="p-4 border-t border-border flex items-center justify-between text-caption">
-        <span>{data.members.length} members · {data.attendance.length} previously recorded</span>
-        <span>Present: {data.members.filter((m) => getStatus(m.id) === "present").length}</span>
-      </div>
-    </SectionCard>
-  );
-}
-
-function AttendanceByMember() {
-  const [memberId, setMemberId] = React.useState<string | null>(null);
-  const { data: membersData } = useFetch<{ members: { id: string; firstName: string; lastName: string }[] }>(`/api/members?limit=200`);
-
-  if (!memberId) {
-    return (
-      <SectionCard>
-        <div className="p-4 border-b border-border"><p className="text-sm font-medium text-primary">Select a member to view their attendance history</p></div>
-        <div className="max-h-[60vh] overflow-y-auto scrollbar-thin divide-y divide-border">
-          {membersData?.members.map((m) => (
-            <button key={m.id} onClick={() => setMemberId(m.id)} className="w-full p-3 flex items-center justify-between hover:bg-surface-alt text-left">
-              <span className="text-sm text-foreground">{m.firstName} {m.lastName}</span>
-              <Icon as={ChevronRight} boundingBox={false} size={18} className="text-muted-foreground" />
-            </button>
-          ))}
-        </div>
-      </SectionCard>
-    );
-  }
-
-  return <MemberAttendanceHistory memberId={memberId} onBack={() => setMemberId(null)} />;
-}
-
-function MemberAttendanceHistory({ memberId, onBack }: { memberId: string; onBack: () => void }) {
-  const { data: memberData } = useFetch<{ member: Member }>(`/api/members/${memberId}`);
-  const member = memberData?.member;
-  const { data, loading, error } = useFetch<{ records: { id: string; status: string; note: string | null; recordedAt: string; event: { id: string; title: string; startTime: string } }[] }>(`/api/attendance?memberId=${memberId}`);
-  if (loading) return <LoadingSpinner label="Loading…" />;
-  if (error || !data) return <ErrorState title="Couldn't load" description={error} onRetry={() => window.location.reload()} />;
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <button onClick={onBack} className="text-sm text-muted-foreground hover:text-primary mb-3 inline-flex items-center gap-1">
-          <Icon as={ChevronLeft} boundingBox={false} size={16} />Back to members
-        </button>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-surface-alt flex items-center justify-center text-sm font-medium text-primary">
-            {member ? initials(member.firstName, member.lastName) : ""}
-          </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="font-medium text-primary">{member ? `${member.firstName} ${member.lastName}` : ""}</h3>
-            <p className="text-caption">Attendance card</p>
-          </div>
-          {member && <Badge variant="secondary" className="capitalize shrink-0">{member.status}</Badge>}
-        </div>
-      </div>
-      <AttendanceCard memberId={memberId} />
-      <SectionCard>
-        <div className="p-4 border-b border-border"><h3 className="text-title text-primary">Event history</h3></div>
-        <div className="divide-y divide-border max-h-[45vh] overflow-y-auto scrollbar-thin">
-          {data.records.length === 0 ? <EmptyState title="No attendance recorded" /> : data.records.map((r) => (
-            <div key={r.id} className="p-3 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-primary">{r.event.title}</p>
-                <p className="text-caption">{formatDate(r.event.startTime)}</p>
-              </div>
-              <span className={cn("inline-flex items-center px-2 py-0.5 rounded-sm border text-xs font-medium capitalize", statusClass(r.status))}>{r.status}</span>
-            </div>
-          ))}
-        </div>
-      </SectionCard>
-    </div>
-  );
-}
-
-function AttendanceTrends() {
-  const { data, loading } = useFetch<{ recent: { id: string; status: string; event: { title: string; startTime: string } }[] }>(`/api/attendance`);
-  const { data: statsData } = useFetch<{ attendanceTrend: { label: string; present: number; title: string }[] }>("/api/stats");
-
-  if (loading) return <LoadingSpinner label="Loading trends…" />;
-
-  const trend = statsData?.attendanceTrend || [];
-  const maxPresent = Math.max(...trend.map((t) => t.present), 1);
-
-  return (
-    <div className="space-y-4">
-      <SectionCard className="p-6">
-        <h3 className="text-title text-primary mb-4">Weekly attendance (last 8 services)</h3>
-        <div className="space-y-3">
-          {trend.map((t, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <span className="text-caption w-12 shrink-0">{t.label}</span>
-              <div className="flex-1 h-7 bg-surface-alt rounded-sm overflow-hidden">
-                <div className="h-full bg-primary rounded-sm flex items-center justify-end pr-2" style={{ width: `${(t.present / maxPresent) * 100}%` }}>
-                  <span className="text-xs font-medium text-primary-foreground">{t.present}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </SectionCard>
-
-      <SectionCard className="p-6">
-        <h3 className="text-title text-primary mb-4">Recent attendance records</h3>
-        {data?.recent.length === 0 ? <EmptyState title="No records yet" /> : (
-          <div className="divide-y divide-border">
-            {data?.recent.slice(0, 15).map((r) => (
-              <div key={r.id} className="py-2.5 flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-foreground">{r.event.title}</p>
-                  <p className="text-caption">{formatDate(r.event.startTime)}</p>
-                </div>
-                <span className={cn("inline-flex items-center px-2 py-0.5 rounded-sm border text-xs font-medium capitalize", statusClass(r.status))}>{r.status}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </SectionCard>
-    </div>
   );
 }

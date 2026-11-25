@@ -14,7 +14,7 @@ import { apiRequest } from "@/hooks/use-fetch";
 import { statusClass, formatDate } from "@/lib/format";
 import {
   CheckCircle2, Mail, ArrowRight, ArrowLeft,
-  FileText, Headphones, Video, Inbox, User, Home,
+  FileText, Headphones, Video, Inbox, User, Home, Loader2,
 } from "@/components/icons";
 import type { AppIcon } from "@/components/icons";
 import { DateField, todayKey } from "@/components/forms/pickers";
