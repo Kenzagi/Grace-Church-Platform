@@ -5,7 +5,8 @@ import { cn } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import type { AppIcon } from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, Inbox, AlertCircle, RefreshCw } from "@/components/icons";
+import { Spinner } from "@/components/ui/spinner";
+import { Inbox, AlertCircle, RefreshCw } from "@/components/icons";
 
 /** PageHeader — consistent title + description + actions across every section. */
 export function PageHeader({
@@ -20,7 +21,7 @@ export function PageHeader({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
       <div className="min-w-0">
-        <h1 className="text-base leading-5 font-medium tracking-tight text-primary">{title}</h1>
+        <h1 className="text-title text-primary">{title}</h1>
         {description && <p className="text-caption mt-2 max-w-2xl">{description}</p>}
       </div>
       {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
@@ -82,7 +83,7 @@ export function StatCard({
 export function LoadingSpinner({ label }: { label?: string }) {
   return (
     <div className="flex items-center justify-center py-16 gap-3">
-      <Icon as={Loader2} className="animate-spin text-muted-foreground" />
+      <Spinner className="text-muted-foreground" />
       {label && <span className="text-caption">{label}</span>}
     </div>
   );

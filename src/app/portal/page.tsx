@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { apiRequest } from "@/hooks/use-fetch";
 import { statusClass, formatDate } from "@/lib/format";
 import {
-  CheckCircle2, Mail, Loader2, ArrowRight, ArrowLeft,
+  CheckCircle2, Mail, ArrowRight, ArrowLeft,
   FileText, Headphones, Video, Inbox, User, Home,
 } from "@/components/icons";
 import type { AppIcon } from "@/components/icons";
@@ -285,7 +286,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <Button type="submit" disabled={busy} className="w-full h-10">
-            {busy && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {busy && <Spinner className="mr-2" />}
             Continue <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </form>
@@ -464,7 +465,7 @@ function SubmitPanel({ onSwitchToStatus }: { onSwitchToStatus: (email: string) =
             <ArrowLeft className="w-4 h-4 mr-1" />Back
           </Button>
           <Button type="submit" disabled={busy} className="flex-1">
-            {busy && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {busy && <Spinner className="mr-2" />}
             {busy ? "Submitting…" : "Submit for review"}
           </Button>
         </div>

@@ -119,7 +119,6 @@ export function AppShell({
             pendingBadge={pendingBadge}
             grouped={grouped}
             collapsed={collapsed}
-            onToggleCollapse={toggleCollapse}
           />
         </aside>
 
@@ -139,7 +138,6 @@ export function AppShell({
                 pendingBadge={pendingBadge}
                 grouped={grouped}
                 collapsed={false}
-                onToggleCollapse={() => {}}
                 onMobileClose={() => setMobileOpen(false)}
               />
             </aside>
@@ -197,13 +195,16 @@ export function AppShell({
             </div>
           </header>
 
-          {/* Content — scrolls independently within viewport */}
-          <main className="flex-1 overflow-y-auto scrollbar-thin">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</div>
+          {/* Content — scrolls independently within viewport; footer pinned to
+              the bottom of the scroll area even when content is short */}
+          <main className="flex-1 overflow-y-auto scrollbar-thin flex flex-col">
+            <div className="flex-1">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</div>
+            </div>
             {/* Footer sits at the end of the scrollable content */}
             <footer className="border-t border-border bg-surface px-6 py-4">
               <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-caption">
-                <p>Teleios — Church Administration Platform v2.0</p>
+                <p>Teleios — Church Administration Platform</p>
                 <p>Secure · Audited · {new Date().getFullYear()}</p>
               </div>
             </footer>
@@ -234,7 +235,6 @@ function SidebarContent({
   pendingBadge,
   grouped,
   collapsed,
-  onToggleCollapse,
   onMobileClose,
 }: {
   user: User;
@@ -244,7 +244,6 @@ function SidebarContent({
   pendingBadge?: number;
   grouped: { group: "main" | "ministry" | "ops"; items: NavItem[] }[];
   collapsed: boolean;
-  onToggleCollapse: () => void;
   onMobileClose?: () => void;
 }) {
   const initials = user.name
@@ -303,12 +302,12 @@ function SidebarContent({
                     aria-current={isActive ? "page" : undefined}
                     aria-label={item.label}
                   >
-                    <Icon as={item.icon} boundingBox={false} size={14} />
+                    <Icon as={item.icon} boundingBox={false} />
                     {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
                     {!collapsed && item.id === "submissions" && pendingBadge ? (
                       <span
                         className={cn(
-                          "min-w-5 h-5 px-1.5 inline-flex items-center justify-center rounded-full text-xs font-medium tabular-nums",
+                          "min-w-5 h-5 px-2 inline-flex items-center justify-center rounded-full text-xs font-medium tabular-nums",
                           isActive
                             ? "bg-primary-foreground text-primary"
                             : "bg-primary text-primary-foreground"
@@ -348,23 +347,6 @@ function SidebarContent({
           </div>
         ))}
       </nav>
-
-      {/* Collapse toggle (desktop, in sidebar footer) */}
-      {!onMobileClose && (
-        <div className="border-t border-sidebar-border px-2 py-2 shrink-0 hidden lg:block">
-          <button
-            onClick={onToggleCollapse}
-            className={cn(
-              "w-full flex items-center rounded-sm text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-primary transition-colors h-9",
-              collapsed ? "justify-center" : "gap-3 px-3"
-            )}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <Icon as={collapsed ? PanelLeftOpen : PanelLeftClose} boundingBox={false} />
-            {!collapsed && <span className="flex-1 text-left">Collapse</span>}
-          </button>
-        </div>
-      )}
 
       {/* User footer */}
       <div className="border-t border-sidebar-border p-3 shrink-0">

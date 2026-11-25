@@ -26,8 +26,9 @@ import { toast } from "sonner";
 import {
   Users, Plus, Download, Upload, Search, Mail, Phone, MapPin, Calendar,
   X, ChevronRight, Trash2, Pencil, UserPlus, FileText, Check, AlertCircle,
-  Camera, Loader2,
+  Camera,
 } from "@/components/icons";
+import { Spinner } from "@/components/ui/spinner";
 import { DateField, todayKey } from "@/components/forms/pickers";
 import type { AppIcon } from "@/components/icons";
 
@@ -514,7 +515,7 @@ function PhotoUpload({
         {previewUrl && !uploading ? (
           <img src={previewUrl} alt={`${firstName} ${lastName}`} className="w-full h-full object-cover" />
         ) : uploading ? (
-          <Icon as={Loader2} boundingBox={false} size={22} className="animate-spin" />
+          <Spinner size={22} className="text-primary-foreground" />
         ) : (
           <span>{initials(firstName, lastName)}</span>
         )}

@@ -17,8 +17,10 @@ import {
 import type { SectionId } from "@/lib/types";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Icon } from "@/components/Icon";
+import { TeleiosLogo } from "@/components/TeleiosLogo";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
-import { Church, RefreshCw, ServerOff, Loader2 } from "@/components/icons";
+import { RefreshCw, ServerOff } from "@/components/icons";
 import { AnimatePresence, motion } from "motion/react";
 
 const SECTIONS: Record<SectionId, React.ComponentType<{ onNavigate?: (id: SectionId) => void }>> = {
@@ -67,10 +69,10 @@ export default function Page() {
       <div className="min-h-screen flex items-center justify-center bg-surface-alt">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-sm bg-primary text-primary-foreground flex items-center justify-center">
-            <Icon as={Church} boundingBox={false} size={22} />
+            <TeleiosLogo size={22} />
           </div>
           <div className="flex items-center gap-3 text-muted-foreground">
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Spinner size={20} />
             <span className="text-sm">Loading Teleios…</span>
           </div>
         </div>

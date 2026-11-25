@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Spinner } from "@/components/ui/spinner";
 import {
-  Loader2,
   Lock,
   Mail,
   AlertCircle,
@@ -56,8 +56,8 @@ export function LoginSection({
 }: {
   onLogin: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
 }) {
-  const [email, setEmail] = React.useState("admin@grace.community");
-  const [password, setPassword] = React.useState("grace2026");
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -222,7 +222,7 @@ export function LoginSection({
               disabled={loading}
               className="w-full h-10 rounded-lg text-white border border-white/[0.08] bg-gradient-to-b from-[#4b2f8a] to-[#391463] hover:from-[#573899] hover:to-[#41236f] shadow-[0_10px_28px_-14px_rgba(57,20,99,0.9)]"
             >
-              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {loading && <Spinner className="mr-2" />}
               {loading ? "Signing in…" : "Sign in"}
             </Button>
 
@@ -230,12 +230,6 @@ export function LoginSection({
               {loading ? "Signing in…" : " "}
             </p>
           </form>
-
-          <p className="mt-2 text-xs leading-relaxed text-zinc-500">
-            Demo office account —{" "}
-            <code className="text-zinc-300">admin@grace.community</code> ·{" "}
-            <code className="text-zinc-300">grace2026</code>
-          </p>
 
           <div className="mt-auto pt-9 flex items-center justify-between text-xs text-zinc-500">
             <p>© {new Date().getFullYear()} Teleios</p>

@@ -48,14 +48,15 @@ async function _handleGET() {
       title: e.title,
     }));
 
-  // Member status breakdown
+  // Member status breakdown — palette per design system:
+  // cyan (additional) for the primary series, soft indigo + neutral for the rest
   const statusBreakdown = [
-    { label: "Active", value: activeMembers, color: "#181818" },
-    { label: "Visitors", value: visitors, color: "#6A6A6A" },
+    { label: "Active", value: activeMembers, color: "#00B4D8" },
+    { label: "Visitors", value: visitors, color: "#8B94F2" },
     {
       label: "Inactive",
       value: await db.member.count({ where: { orgId, status: "inactive" } }),
-      color: "#b5b5b5",
+      color: "#6A6A6A",
     },
   ];
 

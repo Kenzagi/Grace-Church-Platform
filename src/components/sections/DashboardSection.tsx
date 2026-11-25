@@ -46,9 +46,17 @@ function useChartColors() {
   // Re-compute whenever the resolved theme changes
   void resolvedTheme;
   return React.useMemo(() => {
-    const isDark = resolvedTheme === "dark";
+    // forcedTheme="dark" leaves resolvedTheme unset — fall back to the class
+    // next-themes puts on <html>, so charts never render light-on-dark.
+    const isDark =
+      resolvedTheme === "dark" ||
+      (typeof document !== "undefined" &&
+        document.documentElement.classList.contains("dark"));
     return {
-      stroke: isDark ? "#fafafa" : "#181818",
+      // Series use the design system's additional accents: cyan line,
+      // indigo bars (soft lift on dark — raw #3F4ADE is fill-only there)
+      stroke: "#00B4D8",
+      bar: isDark ? "#8B94F2" : "#3F4ADE",
       grid: isDark ? "#2a2a2a" : "#ececec",
       tick: isDark ? "#a3a3a3" : "#6A6A6A",
       tooltipBorder: isDark ? "#2a2a2a" : "#ececec",
@@ -56,7 +64,7 @@ function useChartColors() {
       tooltipText: isDark ? "#fafafa" : "#181818",
       barCursor: isDark ? "#262626" : "#f7f7f7",
       shadow: isDark ? "0 4px 12px rgba(0,0,0,0.4)" : "0 4px 12px rgba(0,0,0,0.06)",
-      gradStop: isDark ? "#fafafa" : "#181818",
+      gradStop: "#00B4D8",
     };
   }, [resolvedTheme]);
 }
@@ -230,13 +238,13 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={s.groupDistribution} margin={{ left: -20, right: 8, top: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={c.grid} vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 13, fill: c.tick }} axisLine={false} tickLine={false} interval={0} angle={-15} textAnchor="end" height={50} />
+                <XAxis dataKey="label" tick={{ fontSize: 14, fill: c.tick }} axisLine={false} tickLine={false} interval={0} angle={-15} textAnchor="end" height={50} />
                 <YAxis tick={{ fontSize: 14, fill: c.tick }} axisLine={false} tickLine={false} />
                 <Tooltip
                   cursor={{ fill: c.barCursor }}
                   contentStyle={{ borderRadius: 8, border: `1px solid ${c.tooltipBorder}`, fontSize: 14, backgroundColor: c.tooltipBg, color: c.tooltipText }}
                 />
-                <Bar dataKey="value" fill={c.stroke} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill={c.bar} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -340,7 +348,7 @@ export function DashboardSection({ onNavigate }: { onNavigate: (id: import("@/li
                   <li key={c.roleName}>
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-sm font-medium text-primary">{c.roleName}</span>
-                      <span className={`text-xs tabular-nums ${full ? "text-accent-green font-medium" : "text-muted-foreground"}`}>
+                      <span className={`text-xs tabular-nums ${full ? "text-accent-cyan font-medium" : "text-muted-foreground"}`}>
                         {c.assigned}/{c.capacity}
                       </span>
                     </div>

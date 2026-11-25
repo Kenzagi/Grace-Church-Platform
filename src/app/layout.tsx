@@ -1,9 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Instrument_Sans, DM_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Instrument_Sans, DM_Mono } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+
+// Geist carries the system (16px body regular / 14px medium-dense / 18px titles).
+const geist = Geist({
+  variable: "--font-geist",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 const inter = Inter({
   variable: "--font-inter",
@@ -56,7 +69,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f7f9fa",
+  themeColor: "#121212",
 };
 
 export default function RootLayout({
@@ -67,7 +80,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${instrument.variable} ${dmMono.variable} antialiased bg-background text-foreground`}
+        className={`${geist.variable} ${geistMono.variable} ${inter.variable} ${instrument.variable} ${dmMono.variable} antialiased bg-background text-foreground`}
       >
         <Providers>
           {children}
